@@ -1,6 +1,7 @@
 # MinecraftConsoles
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/jrum7HhegA)
+If you have any questions regardding this fork, this is my Fluxer server (similar to a Discord server):
+[![Revela's Revelry](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://fluxer.gg/CgS3uFT7)
 
 ![Tutorial World](.github/TutorialWorld.png)
 
