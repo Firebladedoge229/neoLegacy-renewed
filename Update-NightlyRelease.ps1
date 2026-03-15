@@ -59,19 +59,46 @@ if (Test-Path $ZipPath) {
     Remove-Item $ZipPath -Force
 }
 
-# Use .NET ZipFile for reliable cross-platform zip structure
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$tempZip = "$ZipPath.tmp"
-[System.IO.Compression.ZipFile]::CreateFromDirectory($ReleaseDir, $tempZip, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+$topLevelFolder = "LCEWindows64"
 
-# Rewrite the zip without .pch files
-$zipIn  = [System.IO.Compression.ZipFile]::Open($tempZip, 'Update')
-$toRemove = @($zipIn.Entries | Where-Object { $_.FullName -like "*.pch" -or $_.FullName -like "*.zip" })
-foreach ($entry in $toRemove) { $entry.Delete() }
-$zipIn.Dispose()
+$fs = [System.IO.File]::Open($ZipPath, [System.IO.FileMode]::Create)
+try {
+    $zip = New-Object System.IO.Compression.ZipArchive($fs, [System.IO.Compression.ZipArchiveMode]::Create)
 
-Move-Item -Path $tempZip -Destination $ZipPath -Force
+    try {
+        $basePath = (Resolve-Path $ReleaseDir).Path
+
+        Get-ChildItem -Path $basePath -Recurse -File | ForEach-Object {
+            $fullPath = $_.FullName
+
+            if ($_.Extension -ieq ".pch" -or $_.Extension -ieq ".zip") {
+                return
+            }
+
+            $relativePath = $fullPath.Substring($basePath.Length).TrimStart('\','/')
+            $entryName = ($topLevelFolder + "/" + ($relativePath -replace '\\','/'))
+
+            Write-Host "    Adding: $entryName"
+
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                $zip,
+                $fullPath,
+                $entryName,
+                [System.IO.Compression.CompressionLevel]::Optimal
+            ) | Out-Null
+        }
+    }
+    finally {
+        $zip.Dispose()
+    }
+}
+finally {
+    $fs.Dispose()
+}
+
 Write-Host "    Created: $ZipPath" -ForegroundColor Green
 
 # --- Step 3: Get the Nightly release info ---
