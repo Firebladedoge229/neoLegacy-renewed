@@ -14,6 +14,9 @@ This project is based on source code of Minecraft Legacy Console Edition v1.6.05
 
 ## Latest:
 
+Added copy+paste support for IP/Port, world names, world seeds, server names, signs, etc.
+- Just use control+v to paste from your clipboard!
+
 Dedicated server releases support Hardcore Mode!
 - Dedicated server is fully compatible with `smartcmd/MinecraftConsoles` clients, even with hardcore mode!
 - Client (`LCEWindows64.zip`): download from the Nightly release on GitHub
