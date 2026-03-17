@@ -260,6 +260,7 @@
     <ClCompile Include="..\Minecraft.Client\Common\UI\IUIScene_StartGame.cpp" />
     <ClCompile Include="..\Minecraft.Client\Common\UI\IUIScene_TradingMenu.cpp" />
     <ClCompile Include="..\Minecraft.Client\Common\UI\UIBitmapFont.cpp" />
+    <ClCompile Include="..\Minecraft.Client\Common\UI\UIUnicodeBitmapFont.cpp" />
     <ClCompile Include="..\Minecraft.Client\Common\UI\UIComponent_Chat.cpp" />
     <ClCompile Include="..\Minecraft.Client\Common\UI\UIComponent_DebugUIConsole.cpp" />
     <ClCompile Include="..\Minecraft.Client\Common\UI\UIComponent_DebugUIMarketingGuide.cpp" />

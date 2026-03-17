@@ -3315,7 +3315,9 @@ void ClientConnection::handleTileEditorOpen(shared_ptr<TileEditorOpenPacket> pac
 
 void ClientConnection::handleSignUpdate(shared_ptr<SignUpdatePacket> packet)
 {
-	app.DebugPrintf("ClientConnection::handleSignUpdate - ");
+	app.DebugPrintf("[SIGN] handleSignUpdate at (%d, %d, %d):\n", packet->x, packet->y, packet->z);
+	for (int i = 0; i < MAX_SIGN_LINES; i++)
+		app.DebugPrintf("[SIGN]   Line%d: \"%ls\"\n", i+1, packet->lines[i].c_str());
 	if (minecraft->level->hasChunkAt(packet->x, packet->y, packet->z))
 	{
 		shared_ptr<TileEntity> te = minecraft->level->getTileEntity(packet->x, packet->y, packet->z);
@@ -3329,7 +3331,7 @@ void ClientConnection::handleSignUpdate(shared_ptr<SignUpdatePacket> packet)
 				ste->SetMessage(i,packet->lines[i]);
 			}
 
-			app.DebugPrintf("verified = %d\tCensored = %d\n",packet->m_bVerified,packet->m_bCensored);
+			app.DebugPrintf("[SIGN]   verified=%d censored=%d\n", packet->m_bVerified, packet->m_bCensored);
 			ste->SetVerified(packet->m_bVerified);
 			ste->SetCensored(packet->m_bCensored);
 
@@ -3337,12 +3339,12 @@ void ClientConnection::handleSignUpdate(shared_ptr<SignUpdatePacket> packet)
 		}
 		else
 		{
-			app.DebugPrintf("dynamic_pointer_cast<SignTileEntity>(te) == nullptr\n");
+			app.DebugPrintf("[SIGN]   ERROR: tile entity is not a SignTileEntity\n");
 		}
 	}
 	else
 	{
-		app.DebugPrintf("hasChunkAt failed\n");
+		app.DebugPrintf("[SIGN]   ERROR: chunk not loaded at position\n");
 	}
 }
 

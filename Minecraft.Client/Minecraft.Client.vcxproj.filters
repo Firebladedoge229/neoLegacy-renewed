@@ -2953,6 +2953,9 @@
     <ClInclude Include="Common\UI\UIBitmapFont.h">
       <Filter>Common\Source Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Common\UI\UIUnicodeBitmapFont.h">
+      <Filter>Common\Source Files\UI</Filter>
+    </ClInclude>
     <ClInclude Include="Common\UI\UITTFFont.h">
       <Filter>Common\Source Files\UI</Filter>
     </ClInclude>
@@ -5197,6 +5200,9 @@
       <Filter>PS3\Source Files\Audio</Filter>
     </ClCompile>
     <ClCompile Include="Common\UI\UIBitmapFont.cpp">
+      <Filter>Common\Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\UI\UIUnicodeBitmapFont.cpp">
       <Filter>Common\Source Files\UI</Filter>
     </ClCompile>
     <ClCompile Include="Common\UI\UITTFFont.cpp">

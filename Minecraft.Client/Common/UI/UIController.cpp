@@ -13,6 +13,7 @@
 #include "..\..\EnderDragonRenderer.h"
 #include "..\..\MultiPlayerLocalPlayer.h"
 #include "UIFontData.h"
+#include "UIUnicodeBitmapFont.h"
 #include "UISplitScreenHelpers.h"
 #ifdef _WINDOWS64
 #include "..\..\Windows64\KeyboardMouseInput.h"
@@ -193,6 +194,7 @@ UIController::UIController()
 	m_mcTTFFont = nullptr;
 	m_moj7 = nullptr;
 	m_moj11 = nullptr;
+	m_unicodeBitmapFont = nullptr;
 
 	// 4J-JEV: It's important that these remain the same, unless updateCurrentLanguage is going to be called.
 	m_eCurrentFont = m_eTargetFont = eFont_NotLoaded;
@@ -306,6 +308,14 @@ void UIController::postInit()
 	IggySetCustomDrawCallback(&UIController::CustomDrawCallback, this);
 	IggySetAS3ExternalFunctionCallbackUTF16 ( &UIController::ExternalFunctionCallback, this );
 	IggySetTextureSubstitutionCallbacks ( &UIController::TextureSubstitutionCreateCallback , &UIController::TextureSubstitutionDestroyCallback, this );
+
+	// Load a unicode bitmap font as Iggy's global fallback for characters not
+	// covered by the Mojangles bitmap font (CJK, Thai, Arabic, Korean, etc.).
+	// Uses the same glyph page PNGs as the legacy Font class, with matching
+	// Mojangles metrics for correct vertical alignment.
+	m_unicodeBitmapFont = new UIUnicodeBitmapFont("Mojangles_Unicode_Bitmap", SFontData::Mojangles_7);
+	m_unicodeBitmapFont->registerFont();
+	IggyFontSetFallbackFontUTF8("Mojangles_Unicode_Bitmap", -1, IGGY_FONTFLAG_none);
 
 	SetupFont();
 	//

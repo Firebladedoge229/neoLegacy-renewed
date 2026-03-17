@@ -9,7 +9,7 @@ private:
 	//DWORD dwDataSize;
 
 public:
-	UITTFFont(const string &name, const string &path, S32 fallbackCharacter);
+	UITTFFont(const string &name, const string &path, S32 fallbackCharacter, bool registerAsDefaultFonts = true);
 	~UITTFFont();
 
 	string getFontName();

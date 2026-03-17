@@ -16,7 +16,7 @@ Font::Font(Options *options, const wstring& name, Textures* textures, bool enfor
 	charWidths = new int[charC];
 
 	// 4J - added initialisers
-	memset(charWidths, 0, charC);
+	memset(charWidths, 0, charC * sizeof(int));
 
 	enforceUnicodeSheet = false;
 	bidirectional = false;
@@ -25,6 +25,19 @@ Font::Font(Options *options, const wstring& name, Textures* textures, bool enfor
 	m_italic = false;
 	m_underline = false;
 	m_strikethrough = false;
+
+	memset(unicodeTexID, 0, sizeof(unicodeTexID));
+	memset(unicodeWidth, 0, sizeof(unicodeWidth));
+	lastBoundTexture = 0;
+
+	// Load unicode glyph sizes
+	FILE *glyphFile = nullptr;
+	fopen_s(&glyphFile, "Common/res/1_2_2/font/glyph_sizes.bin", "rb");
+	if (glyphFile)
+	{
+		fread(unicodeWidth, 1, 65536, glyphFile);
+		fclose(glyphFile);
+	}
 
 	// Set up member variables
 	m_cols = cols;
@@ -261,7 +274,19 @@ void Font::drawLiteral(const wstring& str, int x, int y, int color)
 	yPos = static_cast<float>(y);
 	wstring cleanStr = sanitize(str);
 	for (size_t i = 0; i < cleanStr.length(); ++i)
-		renderCharacter(cleanStr.at(i));
+	{
+		wchar_t c = cleanStr.at(i);
+		if (isUnicodeGlyphChar(c))
+		{
+			renderUnicodeCharacter(c);
+			textures->bindTexture(m_textureLocation);
+			lastBoundTexture = fontTexture;
+		}
+		else
+		{
+			renderCharacter(c);
+		}
+	}
 }
 
 void Font::drawShadowWordWrap(const wstring &str, int x, int y, int w, int color, int h)
@@ -345,7 +370,7 @@ void Font::draw(const wstring &str, bool dropShadow)
 		}
 
 		// "noise" for crazy splash screen message
-		if (noise)
+		if (noise && !isUnicodeGlyphChar(c))
 		{
 			int newc;
 			do
@@ -355,7 +380,18 @@ void Font::draw(const wstring &str, bool dropShadow)
 			c = newc;
 		}
 
-		addCharacterQuad(c);
+		if (isUnicodeGlyphChar(c))
+		{
+			t->end();
+			renderUnicodeCharacter(c);
+			textures->bindTexture(m_textureLocation);
+			lastBoundTexture = fontTexture;
+			t->begin();
+		}
+		else
+		{
+			addCharacterQuad(c);
+		}
 	}
 
 	t->end();
@@ -396,11 +432,22 @@ int Font::width(const wstring& str)
 				++i;
 			else
 			{
-				len += charWidths[167];
+				if (isUnicodeGlyphChar(167))
+					len += (int)unicodeCharWidth(167);
+				else
+					len += charWidths[167];
 				if (i + 1 < cleanStr.length())
-					len += charWidths[static_cast<unsigned>(cleanStr[++i])];
+				{
+					wchar_t nextC = cleanStr[++i];
+					if (isUnicodeGlyphChar(nextC))
+						len += (int)unicodeCharWidth(nextC);
+					else if (static_cast<unsigned>(nextC) < static_cast<unsigned>(m_cols * m_rows))
+						len += charWidths[static_cast<unsigned>(nextC)];
+				}
 			}
 		}
+		else if (isUnicodeGlyphChar(c))
+			len += (int)unicodeCharWidth(c);
 		else
 			len += charWidths[c];
 	}
@@ -414,7 +461,13 @@ int Font::widthLiteral(const wstring& str)
 	if (cleanStr == L"") return 0;
 	int len = 0;
 	for (size_t i = 0; i < cleanStr.length(); ++i)
-		len += charWidths[static_cast<unsigned>(cleanStr.at(i))];
+	{
+		wchar_t wc = cleanStr.at(i);
+		if (isUnicodeGlyphChar(wc))
+			len += (int)unicodeCharWidth(wc);
+		else
+			len += charWidths[static_cast<unsigned>(wc)];
+	}
 	return len;
 }
 
@@ -427,6 +480,10 @@ wstring Font::sanitize(const wstring& str)
         if (CharacterExists(sb[i]))
 		{
 			sb[i] = MapCharacter(sb[i]);
+		}
+		else if (unicodeWidth[sb[i]] != 0)
+		{
+			// Leave as-is: raw codepoint for glyph page rendering
 		}
 		else
 		{
@@ -671,33 +728,22 @@ void Font::renderFakeCB(IntBuffer *ib)
 		}
 	}
 }
+*/
 
 void Font::loadUnicodePage(int page)
 {
-	wchar_t fileName[25];
-	//String fileName = String.format("/1_2_2/font/glyph_%02X.png", page);
-	swprintf(fileName,25,L"/1_2_2/font/glyph_%02X.png",page);
+	wchar_t fileName[40];
+	swprintf(fileName, 40, L"/1_2_2/font/glyph_%02X.png", page);
 	BufferedImage *image = new BufferedImage(fileName);
-	//try
-	//{
-	//	image = ImageIO.read(Textures.class.getResourceAsStream(fileName.toString()));
-	//}
-	//catch (IOException e)
-	//{
-	//	throw new RuntimeException(e);
-	//}
-
 	unicodeTexID[page] = textures->getTexture(image);
 	lastBoundTexture = unicodeTexID[page];
+	delete image;
 }
 
 void Font::renderUnicodeCharacter(wchar_t c)
 {
 	if (unicodeWidth[c] == 0)
-	{
-		// System.out.println("no-width char " + c);
 		return;
-	}
 
 	int page = c / 256;
 
@@ -709,19 +755,17 @@ void Font::renderUnicodeCharacter(wchar_t c)
 		lastBoundTexture = unicodeTexID[page];
 	}
 
-	// first column with non-trans pixels
 	int firstLeft = unicodeWidth[c] >> 4;
-	// last column with non-trans pixels
 	int firstRight = unicodeWidth[c] & 0xF;
 
-	float left = firstLeft;
-	float right = firstRight + 1;
+	float left = (float)firstLeft;
+	float right = (float)(firstRight + 1);
 
-	float xOff = c % 16 * 16 + left;
-	float yOff = (c & 0xFF) / 16 * 16;
+	float xOff = (c % 16) * 16 + left;
+	float yOff = ((c & 0xFF) / 16) * 16;
 	float width = right - left - .02f;
 
-    Tesselator *t = Tesselator::getInstance();
+	Tesselator *t = Tesselator::getInstance();
 	t->begin(GL_TRIANGLE_STRIP);
 	t->tex(xOff / 256.0F, yOff / 256.0F);
 	t->vertex(xPos, yPos, 0.0f);
@@ -735,5 +779,17 @@ void Font::renderUnicodeCharacter(wchar_t c)
 
 	xPos += (right - left) / 2 + 1;
 }
-*/
+
+float Font::unicodeCharWidth(wchar_t c)
+{
+	if (unicodeWidth[c] == 0) return 0;
+	int firstLeft = unicodeWidth[c] >> 4;
+	int firstRight = unicodeWidth[c] & 0xF;
+	return (firstRight + 1 - firstLeft) / 2.0f + 1;
+}
+
+bool Font::isUnicodeGlyphChar(wchar_t c)
+{
+	return c >= m_cols * m_rows && unicodeWidth[c] != 0;
+}
 

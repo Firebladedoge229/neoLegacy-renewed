@@ -14,7 +14,12 @@ wstring ChatScreen::s_historyDraft;
 
 bool ChatScreen::isAllowedChatChar(wchar_t c)
 {
-	return c >= 0x20 && (c == L'\u00A7' || allowedChars.empty() || allowedChars.find(c) != wstring::npos);
+	if (c < 0x20) return false;
+	// Block Unicode bidirectional override characters that can be used to
+	// spoof chat messages or impersonate players.
+	if (c >= 0x202A && c <= 0x202E) return false; // LRE, RLE, PDF, LRO, RLO
+	if (c >= 0x2066 && c <= 0x2069) return false; // LRI, RLI, FSI, PDI
+	return true;
 }
 
 ChatScreen::ChatScreen()
@@ -93,6 +98,9 @@ void ChatScreen::keyPressed(wchar_t ch, int eventKey)
     if (eventKey == Keyboard::KEY_RETURN)
 	{
         wstring trim = trimString(message);
+        { char buf[64]; sprintf_s(buf, "[CHAT] Sending (%d chars): ", (int)trim.length()); OutputDebugStringA(buf); }
+        OutputDebugStringW(trim.c_str());
+        OutputDebugStringA("\n");
         if (trim.length() > 0)
 		{
             if (!minecraft->handleClientSideCommand(trim))
@@ -135,6 +143,7 @@ void ChatScreen::keyPressed(wchar_t ch, int eventKey)
 	{
         message.insert(cursorIndex, 1, ch);
         cursorIndex++;
+        { char buf[64]; sprintf_s(buf, "[CHAT] Char U+%04X accepted (%d chars)\n", (unsigned)ch, (int)message.length()); OutputDebugStringA(buf); }
     }
 }
 

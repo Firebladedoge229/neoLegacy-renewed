@@ -1386,6 +1386,9 @@ void Gui::clearMessages(int iPad)
 
 void Gui::addMessage(const wstring& _string,int iPad,bool bIsDeathMessage)
 {
+	{ char buf[32]; sprintf_s(buf, "[CHAT] Display (pad=%d): ", iPad); OutputDebugStringA(buf); }
+	OutputDebugStringW(_string.c_str());
+	OutputDebugStringA("\n");
 	wstring string = _string;	// 4J - Take copy of input as it is const
 	//int iScale=1;
 

@@ -506,7 +506,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		break;
 	case WM_PAINT:
@@ -563,7 +563,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		else if (vk == VK_MENU)
 			vk = (lParam & (1 << 24)) ? VK_RMENU : VK_LMENU;
 		g_KBMInput.OnKeyDown(vk);
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
@@ -661,7 +661,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 	return 0;
 }
@@ -673,23 +673,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-	WNDCLASSEX wcex;
+	WNDCLASSEXW wcex;
 
-	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.cbSize = sizeof(WNDCLASSEXW);
 
 	wcex.style			= CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc	= WndProc;
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, "Minecraft");
+	wcex.hIcon			= LoadIconW(hInstance, L"Minecraft");
 	wcex.hCursor		= LoadCursor(nullptr, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= "Minecraft";
-	wcex.lpszClassName	= "MinecraftClass";
+	wcex.lpszMenuName	= L"Minecraft";
+	wcex.lpszClassName	= L"MinecraftClass";
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_MINECRAFTWINDOWS));
 
-	return RegisterClassEx(&wcex);
+	return RegisterClassExW(&wcex);
 }
 
 //
@@ -709,8 +709,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	RECT wr = {0, 0, g_rScreenWidth, g_rScreenHeight};    // set the size, but not the position
 	AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
-	g_hWnd = CreateWindow(	"MinecraftClass",
-		"Minecraft",
+	g_hWnd = CreateWindowW(	L"MinecraftClass",
+		L"Minecraft",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		0,

@@ -18,6 +18,10 @@ private:
 
 	Textures *textures;
 
+	int unicodeTexID[256];
+	unsigned char unicodeWidth[65536];
+	int lastBoundTexture;
+
 	float xPos;
 	float yPos;
 
@@ -70,6 +74,10 @@ private:
 	void drawLiteral(const wstring& str, int x, int y, int color); // no § parsing
 	int MapCharacter(wchar_t c); // 4J added
 	bool CharacterExists(wchar_t c); // 4J added
+	void loadUnicodePage(int page);
+	void renderUnicodeCharacter(wchar_t c);
+	float unicodeCharWidth(wchar_t c);
+	bool isUnicodeGlyphChar(wchar_t c);
 
 public:
     int width(const wstring& str);
