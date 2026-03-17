@@ -2,6 +2,7 @@
 #include "UI.h"
 #include "UIControl_Label.h"
 #include "..\..\..\Minecraft.World\StringHelpers.h"
+#include "..\..\..\Minecraft.World\ArabicShaping.h"
 
 UIControl_Label::UIControl_Label()
 {
@@ -22,13 +23,15 @@ void UIControl_Label::init(UIString label)
 {
 	m_label = label;
 
+	wstring shaped = shapeArabicText(m_label.getString());
+
 	IggyDataValue result;
 	IggyDataValue value[1];
 	value[0].type = IGGY_DATATYPE_string_UTF16;
 	IggyStringUTF16 stringVal;
 
-	stringVal.string = (IggyUTF16*)label.c_str();
-	stringVal.length = label.length();
+	stringVal.string = (IggyUTF16*)shaped.c_str();
+	stringVal.length = (int)shaped.length();
 	value[0].string16 = stringVal;
 	IggyResult out = IggyPlayerCallMethodRS ( m_parentScene->getMovie() , &result, getIggyValuePath() , m_initFunc , 1 , value );
 }

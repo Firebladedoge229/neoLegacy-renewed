@@ -1445,6 +1445,9 @@
     <ClInclude Include="StringHelpers.h">
       <Filter>ConsoleHelpers</Filter>
     </ClInclude>
+    <ClInclude Include="ArabicShaping.h">
+      <Filter>ConsoleHelpers</Filter>
+    </ClInclude>
     <ClInclude Include="net.minecraft.world.item.crafting.h">
       <Filter>net\minecraft\world\item\crafting</Filter>
     </ClInclude>
@@ -4142,6 +4145,9 @@
       <Filter>net\minecraft\world\level\storage</Filter>
     </ClCompile>
     <ClCompile Include="StringHelpers.cpp">
+      <Filter>ConsoleHelpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ArabicShaping.cpp">
       <Filter>ConsoleHelpers</Filter>
     </ClCompile>
     <ClCompile Include="MemoryChunkStorage.cpp">

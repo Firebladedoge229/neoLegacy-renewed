@@ -255,7 +255,7 @@ UIScene_LoadMenu::UIScene_LoadMenu(int iPad, void *initData, UILayer *parentLaye
 		{
 			wchar_t wSaveName[128];
 			ZeroMemory(wSaveName, sizeof(wSaveName));
-			mbstowcs(wSaveName, params->saveDetails->UTF8SaveName, 127);
+			MultiByteToWideChar(CP_UTF8, 0, params->saveDetails->UTF8SaveName, -1, wSaveName, 127);
 			m_levelName = wstring(wSaveName);
 			m_labelGameName.init(m_levelName);
 		}

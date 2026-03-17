@@ -8,6 +8,7 @@
 #include "..\Minecraft.World\net.minecraft.h"
 #include "..\Minecraft.World\StringHelpers.h"
 #include "..\Minecraft.World\Random.h"
+#include "..\Minecraft.World\ArabicShaping.h"
 
 Font::Font(Options *options, const wstring& name, Textures* textures, bool enforceUnicode, ResourceLocation *textureLocation, int cols, int rows, int charWidth, int charHeight, unsigned short charMap[]/* = nullptr */) : textures(textures)
 {
@@ -289,6 +290,74 @@ void Font::drawLiteral(const wstring& str, int x, int y, int color)
 	}
 }
 
+// Like sanitize() but skips the shapeArabicText() call - for pre-shaped strings.
+wstring Font::sanitizePreshaped(const wstring& str)
+{
+	wstring sb = str;
+	for (unsigned int i = 0; i < sb.length(); i++)
+	{
+		if (CharacterExists(sb[i]))
+			sb[i] = MapCharacter(sb[i]);
+		else if (unicodeWidth[sb[i]] != 0)
+		{
+			// Leave as-is: raw codepoint for glyph page rendering
+		}
+		else
+		{
+			sb[i] = 0;
+		}
+	}
+	return sb;
+}
+
+void Font::drawLiteralPreshaped(const wstring& str, int x, int y, int color)
+{
+	if (str.empty()) return;
+	if ((color & 0xFC000000) == 0) color |= 0xFF000000;
+	textures->bindTexture(m_textureLocation);
+	glColor4f((color >> 16 & 255) / 255.0F, (color >> 8 & 255) / 255.0F, (color & 255) / 255.0F, (color >> 24 & 255) / 255.0F);
+	xPos = static_cast<float>(x);
+	yPos = static_cast<float>(y);
+	wstring cleanStr = sanitizePreshaped(str);
+	for (size_t i = 0; i < cleanStr.length(); ++i)
+	{
+		wchar_t c = cleanStr.at(i);
+		if (isUnicodeGlyphChar(c))
+		{
+			renderUnicodeCharacter(c);
+			textures->bindTexture(m_textureLocation);
+			lastBoundTexture = fontTexture;
+		}
+		else
+		{
+			renderCharacter(c);
+		}
+	}
+}
+
+void Font::drawShadowLiteralPreshaped(const wstring& str, int x, int y, int color)
+{
+	int shadowColor = (color & 0xFCFCFC) >> 2 | (color & 0xFF000000);
+	drawLiteralPreshaped(str, x + 1, y + 1, shadowColor);
+	drawLiteralPreshaped(str, x, y, color);
+}
+
+int Font::widthPreshaped(const wstring& str)
+{
+	wstring cleanStr = sanitizePreshaped(str);
+	if (cleanStr.empty()) return 0;
+	int len = 0;
+	for (size_t i = 0; i < cleanStr.length(); ++i)
+	{
+		wchar_t wc = cleanStr.at(i);
+		if (isUnicodeGlyphChar(wc))
+			len += (int)unicodeCharWidth(wc);
+		else
+			len += charWidths[static_cast<unsigned>(wc)];
+	}
+	return len;
+}
+
 void Font::drawShadowWordWrap(const wstring &str, int x, int y, int w, int color, int h)
 {
 	drawWordWrapInternal(str, x + 1, y + 1, w, color, true, h);
@@ -473,7 +542,7 @@ int Font::widthLiteral(const wstring& str)
 
 wstring Font::sanitize(const wstring& str)
 {
-	wstring sb = str;
+	wstring sb = shapeArabicText(str);
 
     for (unsigned int i = 0; i < sb.length(); i++)
 	{

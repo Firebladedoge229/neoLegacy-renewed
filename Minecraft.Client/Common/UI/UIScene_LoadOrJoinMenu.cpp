@@ -49,7 +49,7 @@ static wstring ReadLevelNameFromSaveFile(const wstring& filePath, bool *outHardc
                 if (len > 0)
                 {
                     wchar_t wbuf[128] = {};
-                    mbstowcs(wbuf, buf, 127);
+                    MultiByteToWideChar(CP_UTF8, 0, buf, -1, wbuf, 127);
                     return wstring(wbuf);
                 }
             }
@@ -785,8 +785,11 @@ void UIScene_LoadOrJoinMenu::tick()
                         if (!levelName.empty())
                         {
                             m_buttonListSaves.addItem(levelName, wstring(L""));
-                            wcstombs(m_saveDetails[i].UTF8SaveName, levelName.c_str(), 127);
-                            m_saveDetails[i].UTF8SaveName[127] = '\0';
+                            {
+                                int n = WideCharToMultiByte(CP_UTF8, 0, levelName.c_str(), -1, m_saveDetails[i].UTF8SaveName, 127, nullptr, nullptr);
+                                if (n <= 0) m_saveDetails[i].UTF8SaveName[0] = '\0';
+                                m_saveDetails[i].UTF8SaveName[127] = '\0';
+                            }
                         }
                         else
                         {
@@ -1431,9 +1434,9 @@ int UIScene_LoadOrJoinMenu::KeyboardCompleteWorldNameCallback(LPVOID lpParam,boo
                 for (int k = 0; k < 127 && ui16Text[k]; k++)
                     wNewName[k] = static_cast<wchar_t>(ui16Text[k]);
 
-                // Convert to narrow for storage and in-memory update
-                char narrowName[128] = {};
-                wcstombs(narrowName, wNewName, 127);
+                // Convert to narrow for storage and in-memory update (UTF-8 to preserve Unicode)
+                char narrowName[256] = {};
+                WideCharToMultiByte(CP_UTF8, 0, wNewName, -1, narrowName, 255, nullptr, nullptr);
 
                 // Build the sidecar path: Windows64\GameHDD\{folder}\worldname.txt
                 wchar_t wFilename[MAX_SAVEFILENAME_LENGTH] = {};
@@ -1449,7 +1452,7 @@ int UIScene_LoadOrJoinMenu::KeyboardCompleteWorldNameCallback(LPVOID lpParam,boo
 
                 // Update the in-memory display name so the list reflects it immediately
                 strncpy_s(pClass->m_saveDetails[listPos].UTF8SaveName, narrowName, 127);
-                pClass->m_saveDetails[listPos].UTF8SaveName[127] = '\0';
+                pClass->m_saveDetails[listPos].UTF8SaveName[127] = '\0'; // UTF8SaveName is still 128 bytes; narrowName fits as Arabic is <=2 bytes/char in UTF-8
 
                 // Reuse the existing callback to trigger the list repopulate
                 UIScene_LoadOrJoinMenu::RenameSaveDataReturned(pClass, true);
@@ -2517,7 +2520,7 @@ int UIScene_LoadOrJoinMenu::SaveOptionsDialogReturned(void *pParam,int iPad,C4JS
             {
                 wchar_t wSaveName[128];
                 ZeroMemory(wSaveName, 128 * sizeof(wchar_t));
-                mbstowcs_s(nullptr, wSaveName, 128, pClass->m_saveDetails[pClass->m_iSaveListIndex - pClass->m_iDefaultButtonsC].UTF8SaveName, _TRUNCATE);
+                MultiByteToWideChar(CP_UTF8, 0, pClass->m_saveDetails[pClass->m_iSaveListIndex - pClass->m_iDefaultButtonsC].UTF8SaveName, -1, wSaveName, 127);
                 UIKeyboardInitData kbData;
                 kbData.title       = app.GetString(IDS_RENAME_WORLD_TITLE);
                 kbData.defaultText = wSaveName;

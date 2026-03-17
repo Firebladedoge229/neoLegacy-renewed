@@ -78,10 +78,14 @@ private:
 	void renderUnicodeCharacter(wchar_t c);
 	float unicodeCharWidth(wchar_t c);
 	bool isUnicodeGlyphChar(wchar_t c);
+	wstring sanitizePreshaped(const wstring& str); // sanitize without re-shaping Arabic
+	void drawLiteralPreshaped(const wstring& str, int x, int y, int color);
 
 public:
     int width(const wstring& str);
 	int widthLiteral(const wstring& str); // width without skipping § codes (for chat input)
+	int widthPreshaped(const wstring& str); // width of already-shaped text, no re-shaping
+	void drawShadowLiteralPreshaped(const wstring& str, int x, int y, int color);
     wstring sanitize(const wstring& str);
 	void drawWordWrap(const wstring &string, int x, int y, int w, int col, int h); // 4J Added h param
 

@@ -2404,6 +2404,7 @@
     <ClInclude Include="AnimatePacket.h" />
     <ClInclude Include="AnvilTile.h" />
     <ClInclude Include="AnvilTileItem.h" />
+    <ClInclude Include="ArabicShaping.h" />
     <ClInclude Include="ArmorDyeRecipe.h" />
     <ClInclude Include="ArmorItem.h" />
     <ClInclude Include="ArmorRecipes.h" />
@@ -3479,6 +3480,7 @@
     <ClCompile Include="AnimatePacket.cpp" />
     <ClCompile Include="AnvilTile.cpp" />
     <ClCompile Include="AnvilTileItem.cpp" />
+    <ClCompile Include="ArabicShaping.cpp" />
     <ClCompile Include="ArmorDyeRecipe.cpp" />
     <ClCompile Include="ArmorItem.cpp" />
     <ClCompile Include="ArmorRecipes.cpp" />

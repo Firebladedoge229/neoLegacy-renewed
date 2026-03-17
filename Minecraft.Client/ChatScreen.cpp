@@ -6,6 +6,7 @@
 #include "..\Minecraft.World\SharedConstants.h"
 #include "..\Minecraft.World\StringHelpers.h"
 #include "..\Minecraft.World\ChatPacket.h"
+#include "..\Minecraft.World\ArabicShaping.h"
 
 const wstring ChatScreen::allowedChars = SharedConstants::acceptableLetters;
 vector<wstring> ChatScreen::s_chatHistory;
@@ -154,14 +155,21 @@ void ChatScreen::render(int xm, int ym, float a)
     int x = 4;
     drawString(font, prefix, x, height - 12, 0xe0e0e0);
     x += font->width(prefix);
-    wstring beforeCursor = message.substr(0, cursorIndex);
-    wstring afterCursor = message.substr(cursorIndex);
-    drawStringLiteral(font, beforeCursor, x, height - 12, 0xe0e0e0);
-    x += font->widthLiteral(beforeCursor);
+
+    // Shape the full message as one unit so letter connections and word order
+    // are correct. Track where the logical cursor maps in the visual string.
+    int visualCursorPos = 0;
+    wstring shaped = shapeArabicText(message, cursorIndex, &visualCursorPos);
+
+    // Render the full shaped message without re-shaping it
+    drawStringPreshaped(font, shaped, x, height - 12, 0xe0e0e0);
+
+    // Place the cursor at the correct visual position
+    wstring beforeCursorVisual = shaped.substr(0, visualCursorPos);
+    int cursorX = x + font->widthPreshaped(beforeCursorVisual);
     if (frame / 6 % 2 == 0)
-        drawString(font, L"_", x, height - 12, 0xe0e0e0);
-    x += font->width(L"_");
-    drawStringLiteral(font, afterCursor, x, height - 12, 0xe0e0e0);
+        drawString(font, L"_", cursorX, height - 12, 0xe0e0e0);
+
     Screen::render(xm, ym, a);
 }
 
