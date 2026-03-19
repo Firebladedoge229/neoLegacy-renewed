@@ -31,6 +31,7 @@
 // TODO: reference additional headers your program requires here
 #include <DirectXMath.h>
 #include <d3d11.h>
+#include <dxgi1_5.h>
 using namespace DirectX;
 
 #define HRESULT_SUCCEEDED(hr) (((HRESULT)(hr)) >= 0)

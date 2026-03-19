@@ -887,16 +887,11 @@ void LevelChunk::recalcHeight(int x, int yStart, int z)
 	if (!level->dimension->hasCeiling)
 	{
 		PIXBeginNamedEvent(0,"Light gaps");
-		// Flag columns for gap rechecking — processed by recheckGaps() on next tick
-		auto flagGap = [&](int wx, int wz) {
-			LevelChunk *c = level->getChunkAt(wx, wz);
-			if (c && !c->isEmpty()) c->lightGaps(wx & 15, wz & 15);
-		};
-		flagGap(xOffs - 1, zOffs);
-		flagGap(xOffs + 1, zOffs);
-		flagGap(xOffs, zOffs - 1);
-		flagGap(xOffs, zOffs + 1);
-		flagGap(xOffs, zOffs);
+		lightGap(xOffs - 1, zOffs, y1, y2);
+		lightGap(xOffs + 1, zOffs, y1, y2);
+		lightGap(xOffs, zOffs - 1, y1, y2);
+		lightGap(xOffs, zOffs + 1, y1, y2);
+		lightGap(xOffs, zOffs, y1, y2);
 		PIXEndNamedEvent();
 	}
 

@@ -5,6 +5,11 @@
 #include "..\..\Options.h"
 #include "..\..\GameRenderer.h"
 
+#ifdef _WINDOWS64
+extern bool g_bVSync;
+extern void SetExclusiveFullscreen(bool enabled);
+#endif
+
 namespace
 {
     constexpr int FOV_MIN = 70;
@@ -62,8 +67,10 @@ UIScene_SettingsGraphicsMenu::UIScene_SettingsGraphicsMenu(int iPad, void *initD
 	m_checkboxClouds.init(app.GetString(IDS_CHECKBOX_RENDER_CLOUDS),eControl_Clouds,(app.GetGameSettings(m_iPad,eGameSetting_Clouds)!=0));
 	m_checkboxBedrockFog.init(app.GetString(IDS_CHECKBOX_RENDER_BEDROCKFOG),eControl_BedrockFog,(app.GetGameSettings(m_iPad,eGameSetting_BedrockFog)!=0));
 	m_checkboxCustomSkinAnim.init(app.GetString(IDS_CHECKBOX_CUSTOM_SKIN_ANIM),eControl_CustomSkinAnim,(app.GetGameSettings(m_iPad,eGameSetting_CustomSkinAnim)!=0));
+	m_checkboxVSync.init(L"VSync",eControl_VSync,(app.GetGameSettings(m_iPad,eGameSetting_VSync)!=0));
+	m_checkboxExclusiveFullscreen.init(L"Fullscreen",eControl_ExclusiveFullscreen,(app.GetGameSettings(m_iPad,eGameSetting_ExclusiveFullscreen)!=0));
 
-	
+
 	WCHAR TempString[256];
 
 	swprintf(TempString, 256, L"Render Distance: %d",app.GetGameSettings(m_iPad,eGameSetting_RenderDistance));	
@@ -82,9 +89,15 @@ UIScene_SettingsGraphicsMenu::UIScene_SettingsGraphicsMenu(int iPad, void *initD
 
 	doHorizontalResizeCheck();
 
+#ifndef _WINDOWS64
+	// VSync and Exclusive Fullscreen are only available on PC
+	removeControl(&m_checkboxVSync, true);
+	removeControl(&m_checkboxExclusiveFullscreen, true);
+#endif
+
 	const bool bInGame=(Minecraft::GetInstance()->level!=nullptr);
 	const bool bIsPrimaryPad=(ProfileManager.GetPrimaryPad()==m_iPad);
-	// if we're not in the game, we need to use basescene 0 
+	// if we're not in the game, we need to use basescene 0
 	if(bInGame)
 	{
 		// If the game has started, then you need to be the host to change the in-game gamertags
@@ -165,6 +178,12 @@ void UIScene_SettingsGraphicsMenu::handleInput(int iPad, int key, bool repeat, b
 			app.SetGameSettings(m_iPad,eGameSetting_Clouds,m_checkboxClouds.IsChecked()?1:0);
 			app.SetGameSettings(m_iPad,eGameSetting_BedrockFog,m_checkboxBedrockFog.IsChecked()?1:0);
 			app.SetGameSettings(m_iPad,eGameSetting_CustomSkinAnim,m_checkboxCustomSkinAnim.IsChecked()?1:0);
+			app.SetGameSettings(m_iPad,eGameSetting_VSync,m_checkboxVSync.IsChecked()?1:0);
+			app.SetGameSettings(m_iPad,eGameSetting_ExclusiveFullscreen,m_checkboxExclusiveFullscreen.IsChecked()?1:0);
+#ifdef _WINDOWS64
+			g_bVSync = m_checkboxVSync.IsChecked();
+			SetExclusiveFullscreen(m_checkboxExclusiveFullscreen.IsChecked());
+#endif
 
 			navigateBack();
 			handled = true;

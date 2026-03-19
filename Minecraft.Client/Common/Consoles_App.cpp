@@ -1382,6 +1382,7 @@ void CMinecraftApp::ApplyGameSettingsChanged(int iPad)
 	ActionGameSettings(iPad,eGameSetting_AnimatedCharacter);
 
 	ActionGameSettings(iPad,eGameSetting_PS3_EULA_Read);
+	ActionGameSettings(iPad,eGameSetting_VSync);
 
 }
 
@@ -1616,6 +1617,22 @@ void CMinecraftApp::ActionGameSettings(int iPad,eGameSetting eVal)
 		break;
 	case eGameSetting_PSVita_NetworkModeAdhoc:
 		//nothing to do here
+		break;
+	case eGameSetting_VSync:
+#ifdef _WINDOWS64
+		{
+			extern bool g_bVSync;
+			g_bVSync = (GetGameSettings(iPad, eGameSetting_VSync) != 0);
+		}
+#endif
+		break;
+	case eGameSetting_ExclusiveFullscreen:
+#ifdef _WINDOWS64
+		{
+			extern void SetExclusiveFullscreen(bool enabled);
+			SetExclusiveFullscreen(GetGameSettings(iPad, eGameSetting_ExclusiveFullscreen) != 0);
+		}
+#endif
 		break;
 	}
 }
@@ -2328,6 +2345,38 @@ void CMinecraftApp::SetGameSettings(int iPad,eGameSetting eVal,unsigned char ucV
 		}
 		break;
 
+	case eGameSetting_VSync:
+		if(((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_VSYNC)>>18)!=(ucVal&0x01))
+		{
+			if(ucVal==1)
+			{
+				GameSettingsA[iPad]->uiBitmaskValues|=GAMESETTING_VSYNC;
+			}
+			else
+			{
+				GameSettingsA[iPad]->uiBitmaskValues&=~GAMESETTING_VSYNC;
+			}
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
+	case eGameSetting_ExclusiveFullscreen:
+		if(((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_EXCLUSIVEFULLSCREEN)>>19)!=(ucVal&0x01))
+		{
+			if(ucVal==1)
+			{
+				GameSettingsA[iPad]->uiBitmaskValues|=GAMESETTING_EXCLUSIVEFULLSCREEN;
+			}
+			else
+			{
+				GameSettingsA[iPad]->uiBitmaskValues&=~GAMESETTING_EXCLUSIVEFULLSCREEN;
+			}
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
 	}
 }
 
@@ -2462,6 +2511,12 @@ unsigned char CMinecraftApp::GetGameSettings(int iPad,eGameSetting eVal)
 
 	case eGameSetting_PSVita_NetworkModeAdhoc:
 		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_PSVITANETWORKMODEADHOC)>>17;
+
+	case eGameSetting_VSync:
+		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_VSYNC)>>18;
+
+	case eGameSetting_ExclusiveFullscreen:
+		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_EXCLUSIVEFULLSCREEN)>>19;
 
 	}
 	return 0;

@@ -932,7 +932,6 @@ bool Level::setTileAndData(int x, int y, int z, int tile, int data, int updateFl
 	int old = c->getTile(x & 15, y, z & 15);
 	int olddata = c->getData( x & 15, y, z & 15);
 #endif
-	int prevTile = c->getTile(x & 15, y, z & 15);
 	result = c->setTileAndData(x & 15, y, z & 15, tile, data);
 	if( updateFlags != Tile::UPDATE_INVISIBLE_NO_LIGHT)
 	{
@@ -940,11 +939,7 @@ bool Level::setTileAndData(int x, int y, int z, int tile, int data, int updateFl
 		PIXBeginNamedEvent(0,"Checking light %d %d %d",x,y,z);
 		PIXBeginNamedEvent(0,"was %d, %d now %d, %d",old,olddata,tile,data);
 #endif
-		if (Tile::lightBlock[tile & 0xff] != Tile::lightBlock[prevTile & 0xff] ||
-			Tile::lightEmission[tile & 0xff] != Tile::lightEmission[prevTile & 0xff])
-		{
-			checkLight(x, y, z);
-		}
+		checkLight(x, y, z);
 		PIXEndNamedEvent();
 		PIXEndNamedEvent();
 	}

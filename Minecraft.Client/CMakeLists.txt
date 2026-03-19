@@ -52,6 +52,7 @@ set_target_properties(Minecraft.Client PROPERTIES
 target_link_libraries(Minecraft.Client PRIVATE
   Minecraft.World
   d3d11
+  dxgi
   d3dcompiler
   XInput9_1_0
   wsock32

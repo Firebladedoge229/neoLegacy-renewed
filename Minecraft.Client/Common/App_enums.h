@@ -178,6 +178,9 @@ enum eGameSetting
 	// PSVita
 	eGameSetting_PSVita_NetworkModeAdhoc,
 
+	// PC
+	eGameSetting_VSync,
+	eGameSetting_ExclusiveFullscreen,
 
 };
 
