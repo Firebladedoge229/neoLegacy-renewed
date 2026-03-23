@@ -14,6 +14,16 @@ This project is based on source code of Minecraft Legacy Console Edition v1.6.05
 
 ## Latest:
 
+Upstream merge:
+- Fixed font rendering for color and formatting codes, splash text like "Colormatic!" now renders with proper per-character colors
+- Fixed Sign editing UI, SignEntryMenu720 restored to correct version
+- Stained glass and stained glass panes are now craftable in survival mode with full crafting UI support
+- Clicking outside a container inventory while holding an item now drops it, matching Java Edition behavior
+- Item lore text now displays on hover for items with NBT lore data
+- Increased entity limits: boats 40→60, minecarts 40→60, fireballs 200→300, projectiles 300→400
+- Fixed missing trapped chest textures in Natural Texture Pack
+- Debug packet handling now properly gated behind debug builds
+
 Music context fixes:
 - Menu music (menu1-4) now plays only on the title screen
 - creative music (creative1-6) only plays in creative mode
