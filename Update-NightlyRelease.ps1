@@ -19,10 +19,10 @@ $RepoOwner       = "itsRevela"
 $RepoName        = "MinecraftConsoles"
 $ReleaseTag      = "Nightly"
 $ReleaseDir      = Join-Path $PSScriptRoot "build\Minecraft.Client\Release"
-$ZipName         = "LCEWindows64.zip"
+$ZipName         = "LCREWindows64.zip"
 $ServerReleaseTag  = "Nightly-Dedicated-Server"
 $ServerReleaseDir  = Join-Path $PSScriptRoot "build\Minecraft.Server\Release"
-$ServerZipName     = "LCEServerWindows64.zip"
+$ServerZipName     = "LCREServerWindows64.zip"
 $ArchiveRoot     = "C:\Users\revela\Documents\Minecraft\itsRevelaReleases"
 $ApiBase         = "https://api.github.com/repos/$RepoOwner/$RepoName"
 
@@ -64,7 +64,7 @@ if (Test-Path $ZipPath) {
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$topLevelFolder = "LCEWindows64"
+$topLevelFolder = "LCREWindows64"
 
 $fs = [System.IO.File]::Open($ZipPath, [System.IO.FileMode]::Create)
 try {
@@ -121,7 +121,7 @@ if (Test-Path $ServerZipPath) {
     Remove-Item $ServerZipPath -Force
 }
 
-$serverTopLevelFolder = "LCEServerWindows64"
+$serverTopLevelFolder = "LCREServerWindows64"
 
 $sfs = [System.IO.File]::Open($ServerZipPath, [System.IO.FileMode]::Create)
 try {
