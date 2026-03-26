@@ -14,6 +14,12 @@ This project is based on source code of Minecraft Legacy Console Edition v1.6.05
 
 ## Latest:
 
+Chunk unloading and connection stability fixes:
+- Fixed a regression where chunks outside the player's immediate vicinity would fail to load on dedicated servers, leaving giant missing areas. The server's chunk drop function was immediately removing chunks from the cache instead of queuing them for the existing save/unload pipeline, which meant chunks were never saved, never moved to the recovery cache, and their entities (item frames, paintings, etc.) were never removed from the level before being reloaded, causing entity duplication
+- Fixed the server's `dropAll()` and autosave chunk cleanup iterating the loaded chunk list while simultaneously modifying it (undefined behavior that could corrupt chunk tracking or stall the server)
+- Removed an overly aggressive `dropAll()` call that wiped the entire chunk cache whenever render distance decreased, instead of only removing the out-of-range chunks
+- Fixed a client-side connection bug where a 5-second socket recv timeout (used during the initial server handshake) was never cleared after connecting. This meant any brief server pause longer than 5 seconds (e.g. autosave, chunk I/O) would cause the client to interpret the silence as a lost connection and disconnect
+
 Dedicated server biome diversity fix:
 - The dedicated server previously used a completely random seed with no biome diversity checks, unlike the client which validates seeds to guarantee varied biomes. This could result in server worlds with large regions dominated by only one or two biome types (e.g. all taiga/snowy)
 - On top of that, the client's seed validation was hardcoded to only check a 54-chunk (Classic) area, so even validated seeds had no diversity guarantee beyond that. This made the problem especially noticeable on Large worlds or worlds expanded from Classic to Large

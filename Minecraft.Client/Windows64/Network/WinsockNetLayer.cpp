@@ -455,6 +455,12 @@ bool WinsockNetLayer::JoinGame(const char* ip, int port)
 	{
 		return false;
 	}
+
+	// Clear the recv timeout now that the handshake is complete.
+	// The recv thread should block indefinitely waiting for data.
+	DWORD noTimeout = 0;
+	setsockopt(s_hostConnectionSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
+
 	s_localSmallId = assignedSmallId;
 
 	// Save the host IP and port so JoinSplitScreen can connect to the same host

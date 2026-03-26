@@ -927,6 +927,7 @@ bool ServerChunkCache::tick()
 						int ix = chunk->x + XZOFFSET;
 						int iz = chunk->z + XZOFFSET;
 						int idx = ix * XZSIZE + iz;
+						delete m_unloadedCache[idx];
 						m_unloadedCache[idx] = chunk;
 						cache[idx] = nullptr;
 					}
