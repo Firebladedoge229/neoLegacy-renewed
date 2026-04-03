@@ -69,8 +69,8 @@ void LivingEntityRenderer::render(shared_ptr<Entity> _mob, double x, double y, d
 	if (player != nullptr)
 	{
 		Textures *textures = Minecraft::GetInstance()->textures;
-		int skinId = player->getCustomSkin() - 1;
-		int defaultSkin = player->getCustomSkin() + 35;
+		int skinId = player->getPlayerDefaultSkin() - 1;
+		int defaultSkin = player->getPlayerDefaultSkin() + 35;
 
 		if (slim[skinId] == true)
 		{
@@ -286,8 +286,8 @@ void LivingEntityRenderer::renderModel(shared_ptr<LivingEntity> mob, float wp, f
 	if (player != nullptr)
 	{
 		Textures *textures = Minecraft::GetInstance()->textures;
-		int skinId = player->getCustomSkin() - 1;
-		int defaultSkin = player->getCustomSkin() + 35;
+		int skinId = player->getPlayerDefaultSkin() - 1;
+		int defaultSkin = player->getPlayerDefaultSkin() + 35;
 
 		if (slim[skinId] == true)
 		{
@@ -384,8 +384,8 @@ void LivingEntityRenderer::renderArrows(shared_ptr<LivingEntity> mob, float a)
 	if (player != nullptr)
 	{
 		Textures *textures = Minecraft::GetInstance()->textures;
-		int skinId = player->getCustomSkin() - 1;
-		int defaultSkin = player->getCustomSkin() + 35;
+		int skinId = player->getPlayerDefaultSkin() - 1;
+		int defaultSkin = player->getPlayerDefaultSkin() + 35;
 
 		if (slim[skinId] == true)
 		{
