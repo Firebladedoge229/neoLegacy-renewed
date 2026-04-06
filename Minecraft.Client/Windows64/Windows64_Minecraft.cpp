@@ -472,6 +472,8 @@ IDXGISwapChain*         g_pSwapChain = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
 ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 ID3D11Texture2D*		g_pDepthStencilBuffer = nullptr;
+static const float kClearColorWhite[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+static const float kClearColorBlack[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -1564,7 +1566,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			continue;
 		}
 
+		const float* clearColor = app.GetGameStarted() ? kClearColorBlack : kClearColorWhite;
+		RenderManager.SetClearColour(clearColor);
 		RenderManager.StartFrame();
+		if (!app.GetGameStarted())
+		{
+			RenderManager.SetClearColour(kClearColorWhite); // set intro scene background to white
+			RenderManager.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
 #if 0
 		if(pMinecraft->soundEngine->isStreamingWavebankReady() &&
 			!pMinecraft->soundEngine->isPlayingStreamingGameMusic() &&
