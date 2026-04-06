@@ -15,16 +15,39 @@ enum CatchType {
 class CatchTypeWeighedItem : public WeighedRandomItem {
 	protected:
 		CatchType type;
+		int quality;
+		int weight;
 
 	public:
-		CatchTypeWeighedItem(CatchType type, int weight) : WeighedRandomItem(weight)
+		CatchTypeWeighedItem(CatchType type, int quality, int weight) : WeighedRandomItem(weight)
 		{
 			this->type = type;
+			this->quality = quality;
+			this->weight = weight;
 		}
 
 		CatchType getType()
 		{
 			return type;
+		}
+
+		void calcWeight(int luck) {
+			int newWeight = this->weight + this->quality * luck;
+			if (newWeight < 0) {
+				newWeight = 0;
+			}
+			this->randomWeight = newWeight;
+		}
+};
+
+class CatchTypeWeighedItems : public WeighedRandomItemArray {
+	public:
+		using WeighedRandomItemArray::WeighedRandomItemArray;
+		void calcWeights(int luck) {
+			for (unsigned int i = 0; i < this->length; i++) {
+				CatchTypeWeighedItem* catchTypeWeighedItem = static_cast<CatchTypeWeighedItem *>(this->data[i]);
+				catchTypeWeighedItem->calcWeight(luck);
+			}
 		}
 };
 
@@ -59,12 +82,8 @@ class FishingHelper
 {
 	private:
 		FishingHelper();
-		Random* random;
 
-		WeighedRandomItemArray level0Array;
-		WeighedRandomItemArray level1Array;
-		WeighedRandomItemArray level2Array;
-		WeighedRandomItemArray level3Array;
+		CatchTypeWeighedItems catchTypeArray;
 
 		WeighedRandomItemArray fishingFishArray;
 		WeighedRandomItemArray fishingJunkArray;
@@ -74,8 +93,10 @@ class FishingHelper
 		FishingHelper(const FishingHelper&) = delete;
 		FishingHelper& operator=(const FishingHelper&) = delete;
 		static FishingHelper* getInstance();
+		std::shared_ptr<ItemInstance> getCatch(int luck, Random* random);
+	private:
+		CatchType getRandCatchType(int level, Random* random);
+		CatchWeighedItem* getRandCatch(CatchType catchType, Random* random);
+		std::shared_ptr<ItemInstance> handleCatch(CatchWeighedItem* weighedCatch, CatchType catchType, Random* random);
 
-		CatchType getRandCatchType(int level);
-		CatchWeighedItem* getRandCatch(CatchType catchType);
-		std::shared_ptr<ItemInstance> handleCatch(CatchWeighedItem* weighedCatch, CatchType catchType);
 };

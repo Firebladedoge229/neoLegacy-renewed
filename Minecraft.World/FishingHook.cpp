@@ -461,19 +461,10 @@ int FishingHook::retrieve()
 		FishingHelper* helper = FishingHelper::getInstance();
 
 		std::shared_ptr<ItemInstance> selectedItemSeaLuck = owner->getSelectedItem();
+		// TODO: Take into account luck potion effect when calculating luck level once it's implemented
 		int luckLevel = EnchantmentHelper::getEnchantmentLevel(65, selectedItemSeaLuck); // Luck of the sea
-		CatchType type = helper->getRandCatchType(luckLevel);
-		CatchWeighedItem* caughtItem = helper->getRandCatch(type);
-
-		std::shared_ptr<ItemInstance> fishingItemInstance;
-
-		if (!caughtItem) {
-			// Fall back to default if caught item is a nullptr
-			fishingItemInstance = shared_ptr<ItemInstance>(new ItemInstance(Item::fish_raw));
-		} else {
-			fishingItemInstance = helper->handleCatch(caughtItem, type);
-		}
-
+		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(luckLevel, random);
+		
 		std::shared_ptr<ItemEntity> ie = std::make_shared<ItemEntity>(this->Entity::level, x, y, z, fishingItemInstance);
 		double xa = owner->x - x;
 		double ya = owner->y - y;
