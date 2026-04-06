@@ -19,10 +19,9 @@ class CatchTypeWeighedItem : public WeighedRandomItem {
 		int weight;
 
 	public:
-		CatchTypeWeighedItem(CatchType type, int quality, int weight) : WeighedRandomItem(weight)
+		CatchTypeWeighedItem(CatchType type, int weight) : WeighedRandomItem(weight)
 		{
 			this->type = type;
-			this->quality = quality;
 			this->weight = weight;
 		}
 
@@ -31,24 +30,10 @@ class CatchTypeWeighedItem : public WeighedRandomItem {
 			return type;
 		}
 
-		void calcWeight(int luck) {
-			int newWeight = this->weight + this->quality * luck;
-			if (newWeight < 0) {
-				newWeight = 0;
-			}
-			this->randomWeight = newWeight;
+		void modWeight(int mod) {
+			this->randomWeight = this->weight + mod;
 		}
-};
 
-class CatchTypeWeighedItems : public WeighedRandomItemArray {
-	public:
-		using WeighedRandomItemArray::WeighedRandomItemArray;
-		void calcWeights(int luck) {
-			for (unsigned int i = 0; i < this->length; i++) {
-				CatchTypeWeighedItem* catchTypeWeighedItem = static_cast<CatchTypeWeighedItem *>(this->data[i]);
-				catchTypeWeighedItem->calcWeight(luck);
-			}
-		}
 };
 
 class CatchWeighedItem : public WeighedRandomItem {
@@ -83,20 +68,20 @@ class FishingHelper
 	private:
 		FishingHelper();
 
-		CatchTypeWeighedItems catchTypeArray;
+		WeighedRandomItemArray catchTypeArray;
 
 		WeighedRandomItemArray fishingFishArray;
 		WeighedRandomItemArray fishingJunkArray;
 		WeighedRandomItemArray fishingTreasuresArray;
+
+		CatchType getRandCatchType(int level, Random* random);
+		CatchWeighedItem* getRandCatch(CatchType catchType, Random* random);
+		std::shared_ptr<ItemInstance> handleCatch(CatchWeighedItem* weighedCatch, CatchType catchType, Random* random);
+		CatchType getRandCatchType(int fishMod, int junkMod, int treasureMod, Random* random);
 	public:
 		// Setup singleton
 		FishingHelper(const FishingHelper&) = delete;
 		FishingHelper& operator=(const FishingHelper&) = delete;
 		static FishingHelper* getInstance();
-		std::shared_ptr<ItemInstance> getCatch(int luck, Random* random);
-	private:
-		CatchType getRandCatchType(int level, Random* random);
-		CatchWeighedItem* getRandCatch(CatchType catchType, Random* random);
-		std::shared_ptr<ItemInstance> handleCatch(CatchWeighedItem* weighedCatch, CatchType catchType, Random* random);
-
+		std::shared_ptr<ItemInstance> getCatch(int fishMod, int junkMod, int treasureMod, Random* random);
 };

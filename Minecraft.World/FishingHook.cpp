@@ -33,9 +33,10 @@ void FishingHook::_init()
 	nibble = 0;
 
 	// TU 31: Fishing rod now has a random nibble timer between 5 and 30 seconds, instead of a 1/500 chance every tick (plus modifiers). Source: https://minecraft.wiki/w/Fishing
-	nibbleTimer = random->nextInt(501) + 100;
+	nibbleTimer = random->nextInt(801) + 100;
 	lureTime = 0;
 	hookedIn = nullptr;
+	previousItem = nullptr;
 
 	lSteps = 0;
 	lx = 0.0;
@@ -178,13 +179,19 @@ void FishingHook::tick()
 
 	if (!level->isClientSide)
 	{
+		
 		std::shared_ptr<ItemInstance> selectedItem = owner->getSelectedItem();
-		if (owner->removed || !owner->isAlive() || selectedItem == nullptr || selectedItem->getItem() != Item::fishingRod || distanceToSqr(owner) > 32 * 32)
+		if (this->previousItem == nullptr) {
+			this->previousItem = selectedItem;
+		}
+		if (owner->removed || !owner->isAlive() || selectedItem == nullptr || selectedItem->getItem() != Item::fishingRod || distanceToSqr(owner) > 32 * 32 || selectedItem != this->previousItem)
 		{
 			remove();
 			owner->fishing = nullptr;
 			return;
 		}
+
+		this->previousItem = selectedItem;
 
 		if (hookedIn != nullptr)
 		{
@@ -341,6 +348,10 @@ void FishingHook::tick()
 				nibbleTimer--;
 			}
 
+			else if (!(level->canSeeSky(Mth::floor(x), Mth::floor(y) + 1, Mth::floor(z)))) {
+				// Don't minus the nibbleTimer if the hook is under a roof
+			}
+
 			else {
 				if (random->nextInt(4) == 0) {
 					nibbleTimer -= 2;
@@ -360,7 +371,7 @@ void FishingHook::tick()
 				// if the lure effect causes the nibble timer to go below 0, reset the timer and lure time to recalculate next tick. Source: https://minecraft.wiki/w/Fishing
 				if (nibbleTimer < 0)
 				{
-					nibbleTimer = random->nextInt(501) + 100;
+					nibbleTimer = random->nextInt(801) + 100;
 					lureTime = 0;
 				}
 			}
@@ -369,9 +380,8 @@ void FishingHook::tick()
 			// below 0 due to the random chance of the rain decreasing the timer by 2 instead of 1.
 			if (nibbleTimer == 0 || nibbleTimer == -1)
 			{
-				// TU 31: Increase the nibble time to between 1 and 2 seconds. https://minecraft.wiki/w/Fishing
-				nibble = random->nextInt(21) + 20;
-				nibbleTimer = random->nextInt(501) + 100;
+				nibble = random->nextInt(11) + 30;
+				nibbleTimer = random->nextInt(801) + 100;
 				lureTime = 0;
 				yd -= 0.2f;
 				playSound(eSoundType_RANDOM_SPLASH, 0.25f, 1 + (random->nextFloat() - random->nextFloat()) * 0.4f);
@@ -462,8 +472,13 @@ int FishingHook::retrieve()
 
 		std::shared_ptr<ItemInstance> selectedItemSeaLuck = owner->getSelectedItem();
 		// TODO: Take into account luck potion effect when calculating luck level once it's implemented
-		int luckLevel = EnchantmentHelper::getEnchantmentLevel(65, selectedItemSeaLuck); // Luck of the sea
-		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(luckLevel, random);
+		int luckSeaLevel = EnchantmentHelper::getEnchantmentLevel(65, selectedItemSeaLuck); // Luck of the sea
+		int lureSeaLevel = EnchantmentHelper::getEnchantmentLevel(64, selectedItemSeaLuck); // Lure
+
+		int junkMod = (-10 * lureSeaLevel) + (-25 * luckSeaLevel); // Lure reduces by 1% per level, luck of the sea 2.5% per level.
+		int treasureMod = (- 10 * lureSeaLevel) + (10 * luckSeaLevel);
+		int fishMod = (-junkMod + -treasureMod, 100); // Fish chance is affected my junkMod and treasureMod
+		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(fishMod, junkMod, treasureMod, random);
 		
 		std::shared_ptr<ItemEntity> ie = std::make_shared<ItemEntity>(this->Entity::level, x, y, z, fishingItemInstance);
 		double xa = owner->x - x;

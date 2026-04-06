@@ -2,6 +2,7 @@
 using namespace std;
 
 #include "Entity.h"
+#include "../Minecraft.World/ItemInstance.h"
 
 class Player;
 
@@ -27,6 +28,7 @@ private:
 	int nibble;
 	int nibbleTimer;
 	int lureTime;
+	shared_ptr<ItemInstance> previousItem;
 
 public:
 	shared_ptr<Entity> hookedIn;
