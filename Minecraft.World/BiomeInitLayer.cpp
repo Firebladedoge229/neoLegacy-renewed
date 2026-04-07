@@ -119,9 +119,9 @@ intArray BiomeInitLayer::getArea(int xo, int yo, int w, int h)
 
 			
 			// RareBiomeLayer sets k = plains->id + 128 when it picks a rare slot.
-			// plains->id = 1, so a rare plains = 129. We extract the high bit flag.
-			int rareBit = (k & 0xFF00) >> 8;   // Java: (k & 3840) >> 8
-			k = k & ~0xFF00;                    
+			// plains->id = 1, so a rare plains = 129. We extract the high bits flag.
+			int rareBit = (k & 3840) >> 8;   // Java: (k & 0xF00) >> 8
+			k = k & ~3840;      
 
 			
 			if (k == 0 || k == Biome::ocean->id || k == Biome::deepOcean->id ||
@@ -160,7 +160,7 @@ intArray BiomeInitLayer::getArea(int xo, int yo, int w, int h)
 				result[x + y * w] = icyBiomes[nextRandom(icyBiomes.length)]->id;
 			}
 			// Rare variant from RareBiomeLayer
-			else if (k == Biome::plains->id + 256)
+			else if (k == Biome::plains->id + 128)
 			{
 				result[x + y * w] = Biome::sunflowersPlains->id;
 			}

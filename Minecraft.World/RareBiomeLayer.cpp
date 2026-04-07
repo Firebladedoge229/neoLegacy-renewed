@@ -24,7 +24,7 @@ intArray RareBiomeLayer::getArea(int xo, int yo, int w, int h)
 			{
 				if (k == Biome::plains->id)
 				{
-					aint1[j + i * w] = Biome::plains->id + 256;
+					aint1[j + i * w] = Biome::plains->id + 128;
 				}
 				else
 				{
