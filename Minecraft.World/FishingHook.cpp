@@ -358,13 +358,13 @@ void FishingHook::tick()
 		} 
 		else
 		{	
-			// TU 31: Raining affects the nibble timer by random chance rather than being a fixed rate. Source: https://minecraft.wiki/w/Fishing
-			if (!(level->isRainingAt( Mth::floor(x), Mth::floor(y) + 1, Mth::floor(z)))) {
-				nibbleTimer--;
-			}
 
-			else if (!(level->canSeeSky(Mth::floor(x), Mth::floor(y) + 1, Mth::floor(z)))) {
+			if (!(level->canSeeSky(Mth::floor(x), Mth::floor(y) + 1, Mth::floor(z)))) {
 				// Don't minus the nibbleTimer if the hook obstructed from the sky.
+			}
+			// TU 31: Raining affects the nibble timer by random chance rather than being a fixed rate. Source: https://minecraft.wiki/w/Fishing
+			else if (!(level->isRainingAt( Mth::floor(x), Mth::floor(y) + 1, Mth::floor(z)))) {
+				nibbleTimer--;
 			}
 
 			else {
@@ -482,12 +482,7 @@ int FishingHook::retrieve()
 	else if (nibble > 0)
 	{
 		FishingHelper* helper = FishingHelper::getInstance();
-
-		int junkMod = clamp((-10 * this->lureLevel) + (-25 * this->luckLevel), 0, 1000); // Lure reduces by 1% per level, luck of the sea 2.5% per level.
-		int treasureMod = clamp((-10 * this->lureLevel) + (10 * this->luckLevel), 0, 1000); // Lure reduces by 1% per level, luck of the sea increases by 1% per level.
-		int fishMod = -junkMod + -treasureMod; // Fish chance is affected by junkMod and treasureMod
-		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(fishMod, junkMod, treasureMod, random);
-		
+		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(luckLevel, lureLevel, random);
 		std::shared_ptr<ItemEntity> ie = std::make_shared<ItemEntity>(this->Entity::level, x, y, z, fishingItemInstance);
 		double xa = owner->x - x;
 		double ya = owner->y - y;

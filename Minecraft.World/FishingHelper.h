@@ -13,31 +13,6 @@ enum CatchType {
   JUNK
 };
 
-class CatchTypeWeighedItem : public WeighedRandomItem {
-	protected:
-		CatchType type;
-		int weight;
-
-	public:
-		CatchTypeWeighedItem(CatchType type, int weight) : WeighedRandomItem(weight)
-		{
-			this->type = type;
-			this->weight = weight;
-		}
-
-		CatchType getType()
-		{
-			return type;
-		}
-
-		void modWeight(int mod) {
-			// Modweight doesn't need clamping, this is done in FishingHook.cpp.
-			// randomWeight can be changed, weight stays the same. randomWeight is set equal to weight upon initialization.
-			this->randomWeight = this->weight + mod;
-		}
-
-};
-
 class CatchWeighedItem : public WeighedRandomItem {
 	protected:
 		int itemId;
@@ -70,19 +45,18 @@ class FishingHelper
 	private:
 		FishingHelper();
 
-		WeighedRandomItemArray catchTypeArray;
-
 		WeighedRandomItemArray fishingFishArray;
 		WeighedRandomItemArray fishingJunkArray;
 		WeighedRandomItemArray fishingTreasuresArray;
 
 		CatchWeighedItem* getRandCatch(CatchType catchType, Random* random);
 		std::shared_ptr<ItemInstance> handleCatch(CatchWeighedItem* weighedCatch, CatchType catchType, Random* random);
-		CatchType getRandCatchType(int fishMod, int junkMod, int treasureMod, Random* random);
+		CatchType getRandCatchType(int luckLevel, int lureLevel, Random* random);
 	public:
 		// Setup singleton
 		FishingHelper(const FishingHelper&) = delete;
 		FishingHelper& operator=(const FishingHelper&) = delete;
 		static FishingHelper* getInstance();
-		std::shared_ptr<ItemInstance> getCatch(int fishMod, int junkMod, int treasureMod, Random* random);
+
+		std::shared_ptr<ItemInstance> getCatch(int luckLevel, int lureLevel, Random* random);
 };

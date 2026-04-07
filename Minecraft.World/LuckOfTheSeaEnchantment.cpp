@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LuckOfTheSeaEnchantment.h"
+#include "EnchantmentCategory.h"
 
 
 LuckOfTheSeaEnchantment::LuckOfTheSeaEnchantment(int id, int frequency) : Enchantment(id, frequency, EnchantmentCategory::fishing_rod)

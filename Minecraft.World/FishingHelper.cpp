@@ -5,7 +5,6 @@
 #include "../Minecraft.World/ItemInstance.h"
 #include "../Minecraft.World/EnchantmentHelper.h"
 #include "net.minecraft.world.item.h"
-
 #include <memory>
 
 FishingHelper* FishingHelper::getInstance()
@@ -14,13 +13,8 @@ FishingHelper* FishingHelper::getInstance()
 	return &instance;
 }
 
-FishingHelper::FishingHelper() : catchTypeArray(3), fishingFishArray(4), fishingJunkArray(11), fishingTreasuresArray(5)
+FishingHelper::FishingHelper() : fishingFishArray(4), fishingJunkArray(11), fishingTreasuresArray(6)
 {
-	// Source: https://github.com/WangTingZheng/mcp940/tree/master/src/minecraft/assets/minecraft/loot_tables/gameplay
-	catchTypeArray[0] = new CatchTypeWeighedItem(CatchType::FISH, 850);
-	catchTypeArray[1] = new CatchTypeWeighedItem(CatchType::JUNK, 100 );
-	catchTypeArray[2] = new CatchTypeWeighedItem(CatchType::TREASURE, 50 );
-
 	fishingTreasuresArray[0] = new CatchWeighedItem(Item::bow_Id, 1, 0, 1);
 	fishingTreasuresArray[1] = new CatchWeighedItem(Item::book_Id, 1, 0, 1);
 	fishingTreasuresArray[2] = new CatchWeighedItem(Item::fishingRod_Id, 1, 0, 1);
@@ -46,16 +40,31 @@ FishingHelper::FishingHelper() : catchTypeArray(3), fishingFishArray(4), fishing
 	fishingJunkArray[10] = new CatchWeighedItem(Item::dye_powder_Id, 10, 0, 1); // 10 ink sacs
 }
 
-CatchType FishingHelper::getRandCatchType(int fishMod, int junkMod, int treasureMod, Random* random)
+CatchType FishingHelper::getRandCatchType(int luckLevel, int lureLevel, Random* random)
 {
-	CatchTypeWeighedItem* catchTypeWeighedItem = nullptr;
-	((CatchTypeWeighedItem*)catchTypeArray[0])->modWeight(fishMod);
-	((CatchTypeWeighedItem*)catchTypeArray[1])->modWeight(junkMod);
-	((CatchTypeWeighedItem*)catchTypeArray[2])->modWeight(treasureMod);
-    // Recalculate the weights based on the luck level of the player
-	catchTypeWeighedItem = static_cast<CatchTypeWeighedItem *>(WeighedRandom::getRandomItem(random, catchTypeArray));
+	float randFloat = random->nextFloat();
+	float junkChance = 0.1F - (float)luckLevel * 0.025F - (float)lureLevel * 0.01F; // default 10% chance, affected by lure and luck of the sea
+	float treasureChance = 0.05F + (float)luckLevel * 0.01F - (float)lureLevel * 0.01F; // default 5% chance, affected by lure and luck of the sea
+	junkChance = clamp(junkChance, 0.0F, 1.0F);
+	treasureChance = clamp(treasureChance, 0.0F, 1.0F);
 
-	return catchTypeWeighedItem->getType();
+	if (randFloat < junkChance)
+	{
+		return CatchType::JUNK;
+	}
+	else
+	{
+		randFloat -= junkChance;
+
+		if (randFloat < treasureChance)
+		{
+			return CatchType::TREASURE;
+		}
+		else
+		{
+			return CatchType::FISH;
+		}
+	}
 }
 
 CatchWeighedItem* FishingHelper::getRandCatch(CatchType catchType, Random* random)
@@ -77,26 +86,26 @@ std::shared_ptr<ItemInstance> FishingHelper::handleCatch(CatchWeighedItem* weigh
 	);
 	
 	if ((itemInstance->id == Item::fishingRod_Id && catchType == CatchType::JUNK) || (itemInstance->id == Item::boots_leather_Id)) {
-		itemInstance->setAuxValue((int) (itemInstance->getMaxDamage() * ((double) random->nextInt(901) + 100.0) / 1000.0)); // 10% to 100% damage 
+		itemInstance->setAuxValue((int) ((double) itemInstance->getMaxDamage() * ((double) random->nextInt(901) + 100.0) / 1000.0)); // 10% to 100% damage 
 	}
 	else if (itemInstance->id == Item::fishingRod_Id && catchType == CatchType::TREASURE) {
-		itemInstance->setAuxValue((int)(itemInstance->getMaxDamage() * ((double)random->nextInt(251) / 1000.0))); // 0% to 25% damage
-		itemInstance = EnchantmentHelper::enchantItem(random, itemInstance, 30);
+		itemInstance->setAuxValue((int)((double) itemInstance->getMaxDamage() * ((double)random->nextInt(251) / 1000.0))); // 0% to 25% damage
+		EnchantmentHelper::enchantItem(random, itemInstance, 30);
 	}
 	else if (itemInstance->id == Item::bow_Id) {
-		itemInstance->setAuxValue((int)(itemInstance->getMaxDamage() * ((double)random->nextInt(251) / 1000.0))); // 0% to 25% damage
-		itemInstance = EnchantmentHelper::enchantItem(random, itemInstance, 30);
+		itemInstance->setAuxValue((int)((double) itemInstance->getMaxDamage() * ((double)random->nextInt(251) / 1000.0))); // 0% to 25% damage
+		EnchantmentHelper::enchantItem(random, itemInstance, 30);
 	}
 	else if (itemInstance->id == Item::book_Id) {
-		itemInstance = EnchantmentHelper::enchantItem(random, itemInstance, 30);
+		EnchantmentHelper::enchantItem(random, itemInstance, 30);
 	}
 
 	return itemInstance;
 }
 
-std::shared_ptr<ItemInstance> FishingHelper::getCatch(int fishMod, int junkMod, int treasureMod, Random* random)
+std::shared_ptr<ItemInstance> FishingHelper::getCatch(int luckLevel, int lureLevel, Random* random)
 {
-	CatchType catchType = getRandCatchType(fishMod, junkMod, treasureMod, random);
+	CatchType catchType = getRandCatchType(luckLevel, lureLevel, random);
 	CatchWeighedItem* catchWeighedItem = getRandCatch(catchType, random);
 	return handleCatch(catchWeighedItem, catchType, random);
 }

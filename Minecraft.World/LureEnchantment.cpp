@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LureEnchantment.h"
+#include "EnchantmentCategory.h"
 
 
 LureEnchantment::LureEnchantment(int id, int frequency) : Enchantment(id, frequency, EnchantmentCategory::fishing_rod)
