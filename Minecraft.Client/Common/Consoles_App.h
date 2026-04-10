@@ -22,6 +22,7 @@ using namespace std;
 #include "./GameRules/GameRuleManager.h"
 #include "../SkinBox.h"
 #include "../ArchiveFile.h"
+#include "../FolderFile.h"
 
 typedef struct _JoinFromInviteData
 {
@@ -433,7 +434,7 @@ public:
 	void loadStringTable();
 
 protected:
-	ArchiveFile *m_mediaArchive;
+	FolderFile *m_mediaArchive;
 	StringTable *m_stringTable;
 
 public:
