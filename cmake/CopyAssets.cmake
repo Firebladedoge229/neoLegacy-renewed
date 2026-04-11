@@ -14,9 +14,9 @@ function(setup_asset_folder_copy TARGET_NAME ASSET_FOLDER_PAIRS)
   )
 
   # Global folder exclusions applied to every folder copy
-  set(ASSET_EXCLUDE_FOLDERS
-    "Graphics"
-  )
+#  set(ASSET_EXCLUDE_FOLDERS
+#    "Graphics"
+#  )
 
   # Exclude platform-specific media folders
   set(PLATFORM_MEDIA_FOLDERS
