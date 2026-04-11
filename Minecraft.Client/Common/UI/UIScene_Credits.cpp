@@ -490,7 +490,7 @@ SCreditTextItemDef UIScene_Credits::gs_aCreditDefs[MAX_CREDIT_STRINGS] =
 #endif
     {L"", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eSmallText},
     {L"", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eSmallText},
-    {L"MinecraftConsoles", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eExtraLargeText},
+    {L"LCE-Revelations", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eExtraLargeText},
     {L"Project Maintainers", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eLargeText},
     {L"smartcmd", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eSmallText},
     {L"codeHusky", NO_TRANSLATED_STRING, NO_TRANSLATED_STRING, eSmallText},

@@ -3,6 +3,13 @@
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vhEHre5sCB)
 
+If you have any questions regarding this fork, this is my Fluxer server (similar to a Discord server):
+<p align="center">
+  <a href="https://fluxer.gg/CgS3uFT7">
+    <img src="https://i.imgur.com/cNo8fMs.png" alt="Join my Fluxer server" width="220">
+  </a>
+</p>
+
 This project is based on Legacy Console Edition v1.6.0560.0 (TU19) with fixes and improvements applied. Among these, LCE-Revelations features:
 
 - Fully stable from game-start to endgame
@@ -256,7 +263,7 @@ proxy-protocol=true
 - Dedicated server is fully compatible with `smartcmd/MinecraftConsoles` clients, even with hardcore mode
 - Client (`LCE-Revelations-Client-Win64.zip`): download from the Nightly release on GitHub
 - Dedicated Server (`LCE-Revelations-Server-Win64.zip`): download from the Nightly-Dedicated-Server release on GitHub
-- Docker: pull `ghcr.io/lce-hub/lce-revelations-dedicated-server:nightly` for server container
+- Docker: pull `ghcr.io/itsrevela/lce-revelations-dedicated-server:nightly` for server container
 
 ### Screenshot Functionality
 
@@ -272,15 +279,15 @@ Proper implementation of Hardcore Mode in LCE Revelations!
 - multiplayer fixes: added fix to prevent host from using exit-without-saving loophole for nonhost players that died
 - to-do: hardcore hearts texture
 
-The current goal of MinecraftConsoles is to be a multi-platform base for further development, such as modding, backports, and anything else LCE. On top of that, we're working to make this a quality experience on Desktop with or without a controller while (long-term) retaining console support. 
+The current goal of LCE-Revelations is to be a multi-platform base for further development, such as modding, backports, and anything else LCE. On top of that, we're working to make this a quality experience on Desktop with or without a controller while (long-term) retaining console support. 
 
 See our our [Contributor's Guide](./CONTRIBUTING.md) for more information on the goals of this project.
 
 ## Download
 ### Client
-Windows users can download our [Nightly Build](https://github.com/itsRevela/MinecraftConsoles/releases/tag/Nightly)! Simply download the `.zip` file and extract it to a folder where you'd like to keep the game. You can set your username in `username.txt` (you'll have to make this file)
+Windows users can download our [Nightly Build](https://github.com/itsRevela/LCE-Revelations/releases/tag/Nightly)! Simply download the `.zip` file and extract it to a folder where you'd like to keep the game. You can set your username in `username.txt` (you'll have to make this file)
 ### Server
-If you're looking for Dedicated Server software (with hardcore-mode functionality), download its [Nightly Build here](https://github.com/itsRevela/MinecraftConsoles/releases/tag/Nightly-Dedicated-Server). Similar instructions to the client more or less, though see further down in this README for more info on that.
+If you're looking for Dedicated Server software (with hardcore-mode functionality), download its [Nightly Build here](https://github.com/itsRevela/LCE-Revelations/releases/tag/Nightly-Dedicated-Server). Similar instructions to the client more or less, though see further down in this README for more info on that.
 
 ## Platform Support
 
