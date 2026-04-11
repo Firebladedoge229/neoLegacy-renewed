@@ -507,6 +507,8 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   "${_MS_SRC}/../Minecraft.Client/Xbox/Network/NetworkPlayerXbox.cpp"
   "${_MS_SRC}/../Minecraft.Client/ZombieModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/ZombieRenderer.cpp"
+  "${_MS_SRC}/../Minecraft.Client/GuardianModel.cpp"
+  "${_MS_SRC}/../Minecraft.Client/GuardianRenderer.cpp"  
   "${_MS_SRC}/../Minecraft.Client/compat_shims.cpp"
   "${_MS_SRC}/../Minecraft.Client/glWrapper.cpp"
   "${_MS_SRC}/../Minecraft.Client/iob_shim.asm"
