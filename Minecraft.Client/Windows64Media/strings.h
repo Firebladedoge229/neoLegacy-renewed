@@ -2428,3 +2428,5 @@
 #define IDS_DESC_EXITBOOK                                      2422
 #define IDS_ENCHANTMENT_LURE                                   2423
 #define IDS_ENCHANTMENT_LUCK_OF_THE_SEA                        2424
+#define IDS_GUARDIAN                       					   2425
+#define IDS_GUARDIAN_ELDER                       	           2426
