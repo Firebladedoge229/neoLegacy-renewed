@@ -124,6 +124,18 @@ internal static class NativeBridge
     internal delegate void NativeSetHeldItemSlotDelegate(int entityId, int slot);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void NativeGetCarriedItemDelegate(int entityId, IntPtr outData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void NativeSetCarriedItemDelegate(int entityId, int itemId, int count, int aux);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void NativeGetEnderChestContentsDelegate(int entityId, IntPtr outData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void NativeSetEnderChestSlotDelegate(int entityId, int slot, int itemId, int count, int aux);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void NativeSetSneakingDelegate(int entityId, int sneak);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -261,6 +273,10 @@ internal static class NativeBridge
     internal static NativeGetItemMetaDelegate? GetItemMeta;
     internal static NativeSetItemMetaDelegate? SetItemMeta;
     internal static NativeSetHeldItemSlotDelegate? SetHeldItemSlot;
+    internal static NativeGetCarriedItemDelegate? GetCarriedItem;
+    internal static NativeSetCarriedItemDelegate? SetCarriedItem;
+    internal static NativeGetEnderChestContentsDelegate? GetEnderChestContents;
+    internal static NativeSetEnderChestSlotDelegate? SetEnderChestSlot;
     internal static NativeSetSneakingDelegate? SetSneaking;
     internal static NativeSetVelocityDelegate? SetVelocity;
     internal static NativeSetAllowFlightDelegate? SetAllowFlight;
@@ -340,7 +356,7 @@ internal static class NativeBridge
         SendRaw = Marshal.GetDelegateForFunctionPointer<NativeSendRawDelegate>(sendRaw);
     }
 
-    internal static void SetInventoryCallbacks(IntPtr getPlayerInventory, IntPtr setPlayerInventorySlot, IntPtr getContainerContents, IntPtr setContainerSlot, IntPtr getContainerViewerEntityIds, IntPtr closeContainer, IntPtr openVirtualContainer, IntPtr getItemMeta, IntPtr setItemMeta, IntPtr setHeldItemSlot)
+    internal static void SetInventoryCallbacks(IntPtr getPlayerInventory, IntPtr setPlayerInventorySlot, IntPtr getContainerContents, IntPtr setContainerSlot, IntPtr getContainerViewerEntityIds, IntPtr closeContainer, IntPtr openVirtualContainer, IntPtr getItemMeta, IntPtr setItemMeta, IntPtr setHeldItemSlot, IntPtr getCarriedItem, IntPtr setCarriedItem, IntPtr getEnderChestContents, IntPtr setEnderChestSlot)
     {
         GetPlayerInventory = Marshal.GetDelegateForFunctionPointer<NativeGetPlayerInventoryDelegate>(getPlayerInventory);
         SetPlayerInventorySlot = Marshal.GetDelegateForFunctionPointer<NativeSetPlayerInventorySlotDelegate>(setPlayerInventorySlot);
@@ -352,6 +368,10 @@ internal static class NativeBridge
         GetItemMeta = Marshal.GetDelegateForFunctionPointer<NativeGetItemMetaDelegate>(getItemMeta);
         SetItemMeta = Marshal.GetDelegateForFunctionPointer<NativeSetItemMetaDelegate>(setItemMeta);
         SetHeldItemSlot = Marshal.GetDelegateForFunctionPointer<NativeSetHeldItemSlotDelegate>(setHeldItemSlot);
+        GetCarriedItem = Marshal.GetDelegateForFunctionPointer<NativeGetCarriedItemDelegate>(getCarriedItem);
+        SetCarriedItem = Marshal.GetDelegateForFunctionPointer<NativeSetCarriedItemDelegate>(setCarriedItem);
+        GetEnderChestContents = Marshal.GetDelegateForFunctionPointer<NativeGetEnderChestContentsDelegate>(getEnderChestContents);
+        SetEnderChestSlot = Marshal.GetDelegateForFunctionPointer<NativeSetEnderChestSlotDelegate>(setEnderChestSlot);
     }
 
     internal static void SetEntityCallbacks(IntPtr setSneaking, IntPtr setVelocity, IntPtr setAllowFlight, IntPtr playSound, IntPtr setSleepingIgnored)

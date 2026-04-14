@@ -52,6 +52,12 @@ namespace FourKitBridge
     void __cdecl NativeSetItemMeta(int entityId, int slot, const char *inBuf, int bufSize);
     void __cdecl NativeSetHeldItemSlot(int entityId, int slot);
 
+    // carried item (cursor) & ender chest
+    void __cdecl NativeGetCarriedItem(int entityId, int *outData);
+    void __cdecl NativeSetCarriedItem(int entityId, int itemId, int count, int aux);
+    void __cdecl NativeGetEnderChestContents(int entityId, int *outData);
+    void __cdecl NativeSetEnderChestSlot(int entityId, int slot, int itemId, int count, int aux);
+
     // ent
     void __cdecl NativeSetSneaking(int entityId, int sneak);
     void __cdecl NativeSetVelocity(int entityId, double x, double y, double z);

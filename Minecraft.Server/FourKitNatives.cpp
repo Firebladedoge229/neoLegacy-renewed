@@ -1072,6 +1072,68 @@ void __cdecl NativeSetHeldItemSlot(int entityId, int slot)
         player->connection->queueSend(std::make_shared<SetCarriedItemPacket>(slot));
 }
 
+void __cdecl NativeGetCarriedItem(int entityId, int *outData)
+{
+    outData[0] = 0;
+    outData[1] = 0;
+    outData[2] = 0;
+    auto player = FindPlayer(entityId);
+    if (!player || !player->inventory)
+        return;
+    auto item = player->inventory->getCarried();
+    if (item)
+    {
+        outData[0] = item->id;
+        outData[1] = item->getAuxValue();
+        outData[2] = (int)item->count;
+    }
+}
+
+void __cdecl NativeSetCarriedItem(int entityId, int itemId, int count, int aux)
+{
+    auto player = FindPlayer(entityId);
+    if (!player || !player->inventory)
+        return;
+    if (itemId <= 0 || count <= 0)
+        player->inventory->setCarried(nullptr);
+    else
+        player->inventory->setCarried(std::make_shared<ItemInstance>(itemId, count, aux));
+}
+
+void __cdecl NativeGetEnderChestContents(int entityId, int *outData)
+{
+    memset(outData, 0, 27 * 3 * sizeof(int));
+    auto player = FindPlayer(entityId);
+    if (!player)
+        return;
+    auto ec = player->getEnderChestInventory();
+    if (!ec)
+        return;
+    unsigned int size = ec->getContainerSize();
+    if (size > 27)
+        size = 27;
+    for (unsigned int i = 0; i < size; i++)
+    {
+        WriteInventoryItemData(ec->getItem(i), i, outData);
+    }
+}
+
+void __cdecl NativeSetEnderChestSlot(int entityId, int slot, int itemId, int count, int aux)
+{
+    auto player = FindPlayer(entityId);
+    if (!player)
+        return;
+    auto ec = player->getEnderChestInventory();
+    if (!ec)
+        return;
+    if (slot < 0 || slot >= (int)ec->getContainerSize())
+        return;
+    if (itemId <= 0 || count <= 0)
+        ec->setItem(slot, nullptr);
+    else
+        ec->setItem(slot, std::make_shared<ItemInstance>(itemId, count, aux));
+}
+
 void __cdecl NativeSetSneaking(int entityId, int sneak)
 {
     auto player = FindPlayer(entityId);

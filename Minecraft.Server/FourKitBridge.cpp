@@ -62,7 +62,7 @@ typedef void(__stdcall *fn_set_player_connection_callbacks)(void *sendRaw);
 typedef long long(__stdcall *fn_fire_player_drop_item)(int entityId,
                                                        int itemId, int itemCount, int itemAux,
                                                        int *outItemId, int *outItemCount, int *outItemAux);
-typedef void(__stdcall *fn_set_inventory_callbacks)(void *getPlayerInventory, void *setPlayerInventorySlot, void *getContainerContents, void *setContainerSlot, void *getContainerViewerEntityIds, void *closeContainer, void *openVirtualContainer, void *getItemMeta, void *setItemMeta, void *setHeldItemSlot);
+typedef void(__stdcall *fn_set_inventory_callbacks)(void *getPlayerInventory, void *setPlayerInventorySlot, void *getContainerContents, void *setContainerSlot, void *getContainerViewerEntityIds, void *closeContainer, void *openVirtualContainer, void *getItemMeta, void *setItemMeta, void *setHeldItemSlot, void *getCarriedItem, void *setCarriedItem, void *getEnderChestContents, void *setEnderChestSlot);
 typedef int(__stdcall *fn_fire_player_interact)(int entityId, int action,
                                                 int itemId, int itemCount, int itemAux,
                                                 int clickedX, int clickedY, int clickedZ,
@@ -322,7 +322,11 @@ void Initialize()
         (void *)&NativeOpenVirtualContainer,
         (void *)&NativeGetItemMeta,
         (void *)&NativeSetItemMeta,
-        (void *)&NativeSetHeldItemSlot);
+        (void *)&NativeSetHeldItemSlot,
+        (void *)&NativeGetCarriedItem,
+        (void *)&NativeSetCarriedItem,
+        (void *)&NativeGetEnderChestContents,
+        (void *)&NativeSetEnderChestSlot);
 
     s_managedSetEntityCallbacks(
         (void *)&NativeSetSneaking,
