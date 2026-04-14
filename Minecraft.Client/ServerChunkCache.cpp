@@ -361,6 +361,38 @@ void ServerChunkCache::overwriteHellLevelChunkFromSource(int x, int z, int minVa
 
 #endif
 
+#ifdef MINECRAFT_SERVER_BUILD
+void ServerChunkCache::regenerateChunk(int x, int z)
+{
+	if (!source)
+		return;
+
+	LevelChunk *freshChunk = source->getChunk(x, z);
+	if (!freshChunk)
+		return;
+
+	LevelChunk *cachedChunk = nullptr;
+	if (hasChunk(x, z))
+		cachedChunk = getChunk(x, z);
+
+	if (cachedChunk && cachedChunk != emptyChunk)
+	{
+		for (int lx = 0; lx < 16; lx++)
+			for (int ly = 0; ly < 128; ly++)
+				for (int lz = 0; lz < 16; lz++)
+					cachedChunk->setTileAndData(lx, ly, lz, freshChunk->getTile(lx, ly, lz), freshChunk->getData(lx, ly, lz));
+		save(cachedChunk);
+	}
+	else
+	{
+		save(freshChunk);
+	}
+
+	freshChunk->unload(false);
+	delete freshChunk;
+}
+#endif
+
 // 4J Added //
 #ifdef _LARGE_WORLDS
 void ServerChunkCache::dontDrop(int x, int z)

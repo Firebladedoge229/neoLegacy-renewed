@@ -191,7 +191,58 @@ public class Chunk
     /// <returns>The entities.</returns>
     public Entity.Entity[] getEntities()
     {
-        return Array.Empty<Entity.Entity>();
+        if (NativeBridge.GetChunkEntities == null) return Array.Empty<Entity.Entity>();
+
+        int dimId = _world.getDimensionId();
+        int count = NativeBridge.GetChunkEntities(dimId, _chunkX, _chunkZ, out IntPtr buf);
+        if (count <= 0 || buf == IntPtr.Zero) return Array.Empty<Entity.Entity>();
+
+        var result = new Entity.Entity[count];
+        try
+        {
+            int[] data = new int[count * 3];
+            Marshal.Copy(buf, data, 0, count * 3);
+
+            for (int i = 0; i < count; i++)
+            {
+                int entityId  = data[i * 3];
+                int mappedType = data[i * 3 + 1];
+                int isLiving   = data[i * 3 + 2];
+
+                var entityType = Enum.IsDefined(typeof(Entity.EntityType), mappedType)
+                    ? (Entity.EntityType)mappedType
+                    : Entity.EntityType.UNKNOWN;
+
+                if (entityType == Entity.EntityType.PLAYER)
+                {
+                    var player = FourKit.GetPlayerByEntityId(entityId);
+                    if (player != null)
+                    {
+                        result[i] = player;
+                        continue;
+                    }
+                }
+
+                if (isLiving == 1)
+                {
+                    result[i] = new Entity.LivingEntity(entityId, entityType, dimId, 0, 0, 0);
+                }
+                else
+                {
+                    var entity = new Entity.Entity();
+                    entity.SetEntityIdInternal(entityId);
+                    entity.SetEntityTypeInternal(entityType);
+                    entity.SetDimensionInternal(dimId);
+                    result[i] = entity;
+                }
+            }
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(buf);
+        }
+
+        return result;
     }
 
     /// <summary>

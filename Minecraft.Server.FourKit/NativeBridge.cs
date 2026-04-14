@@ -223,6 +223,9 @@ internal static class NativeBridge
     internal delegate int NativeGetWorldEntitiesDelegate(int dimId, out IntPtr outBuf);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate int NativeGetChunkEntitiesDelegate(int dimId, int chunkX, int chunkZ, out IntPtr outBuf);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate int NativeGetSkyLightDelegate(int dimId, int x, int y, int z);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -306,6 +309,7 @@ internal static class NativeBridge
     internal static NativeRegenerateChunkDelegate? RegenerateChunk;
     internal static NativeRefreshChunkDelegate? RefreshChunk;
     internal static NativeGetWorldEntitiesDelegate? GetWorldEntities;
+    internal static NativeGetChunkEntitiesDelegate? GetChunkEntities;
     internal static NativeGetSkyLightDelegate? GetSkyLight;
     internal static NativeGetBlockLightDelegate? GetBlockLight;
     internal static NativeGetBiomeIdDelegate? GetBiomeId;
@@ -422,9 +426,10 @@ internal static class NativeBridge
         RefreshChunk = Marshal.GetDelegateForFunctionPointer<NativeRefreshChunkDelegate>(refreshChunk);
     }
 
-    internal static void SetWorldEntityCallbacks(IntPtr getWorldEntities)
+    internal static void SetWorldEntityCallbacks(IntPtr getWorldEntities, IntPtr getChunkEntities)
     {
         GetWorldEntities = Marshal.GetDelegateForFunctionPointer<NativeGetWorldEntitiesDelegate>(getWorldEntities);
+        GetChunkEntities = Marshal.GetDelegateForFunctionPointer<NativeGetChunkEntitiesDelegate>(getChunkEntities);
     }
 
     internal static void SetBlockInfoCallbacks(IntPtr getSkyLight, IntPtr getBlockLight, IntPtr getBiomeId, IntPtr setBiomeId)

@@ -98,6 +98,7 @@ namespace FourKitBridge
 
     // world entity bs
     int __cdecl NativeGetWorldEntities(int dimId, int **outBuf);
+    int __cdecl NativeGetChunkEntities(int dimId, int chunkX, int chunkZ, int **outBuf);
 
     // block info (light, biome)
     int __cdecl NativeGetSkyLight(int dimId, int x, int y, int z);

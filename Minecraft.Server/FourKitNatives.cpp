@@ -33,6 +33,7 @@
 #include "../Minecraft.World/Player.h"
 #include "../Minecraft.World/PlayerAbilitiesPacket.h"
 #include "../Minecraft.World/SetCarriedItemPacket.h"
+#include "../Minecraft.World/BlockRegionUpdatePacket.h"
 #include "../Minecraft.World/SetExperiencePacket.h"
 #include "../Minecraft.World/SetHealthPacket.h"
 #include "../Minecraft.World/LevelSoundPacket.h"
@@ -1363,6 +1364,39 @@ int __cdecl NativeGetWorldEntities(int dimId, int **outBuf)
     return count;
 }
 
+int __cdecl NativeGetChunkEntities(int dimId, int chunkX, int chunkZ, int **outBuf)
+{
+    *outBuf = nullptr;
+    ServerLevel *level = GetLevel(dimId);
+    if (!level)
+        return 0;
+
+    EnterCriticalSection(&level->m_entitiesCS);
+    int total = (int)level->entities.size();
+    int *buf = (int *)CoTaskMemAlloc(total * 3 * sizeof(int));
+    int count = 0;
+    if (buf)
+    {
+        for (auto &entity : level->entities)
+        {
+            if (!entity)
+                continue;
+            int ecx = Mth::floor(entity->x / 16.0);
+            int ecz = Mth::floor(entity->z / 16.0);
+            if (ecx != chunkX || ecz != chunkZ)
+                continue;
+            int idx = count * 3;
+            buf[idx] = entity->entityId;
+            buf[idx + 1] = MapEntityType((int)entity->GetType());
+            buf[idx + 2] = entity->instanceof(eTYPE_LIVINGENTITY) ? 1 : 0;
+            count++;
+        }
+    }
+    LeaveCriticalSection(&level->m_entitiesCS);
+    *outBuf = buf;
+    return count;
+}
+
 int __cdecl NativeIsChunkLoaded(int dimId, int chunkX, int chunkZ)
 {
     ServerLevel *level = GetLevel(dimId);
@@ -1513,12 +1547,31 @@ int __cdecl NativeUnloadChunkRequest(int dimId, int chunkX, int chunkZ, int safe
 
 int __cdecl NativeRegenerateChunk(int dimId, int chunkX, int chunkZ)
 {
-    return 0;
+    ServerLevel *level = GetLevel(dimId);
+    if (!level || !level->cache)
+        return 0;
+    level->cache->regenerateChunk(chunkX, chunkZ);
+    return 1;
 }
 
 int __cdecl NativeRefreshChunk(int dimId, int chunkX, int chunkZ)
 {
-    return 0;
+    ServerLevel *level = GetLevel(dimId);
+    if (!level)
+        return 0;
+
+    PlayerList *list = MinecraftServer::getPlayerList();
+    if (!list)
+        return 0;
+
+    auto packet = std::make_shared<BlockRegionUpdatePacket>(chunkX * 16, 0, chunkZ * 16, 16, Level::maxBuildHeight, 16, level);
+    for (auto &p : list->players)
+    {
+        if (!p || p->dimension != dimId || !p->connection || p->connection->isLocal())
+            continue;
+        p->connection->send(packet);
+    }
+    return 1;
 }
 
 int __cdecl NativeGetSkyLight(int dimId, int x, int y, int z)

@@ -105,7 +105,7 @@ typedef int(__stdcall *fn_fire_command_preprocess)(int entityId, const char *cmd
 typedef int(__stdcall *fn_fire_block_from_to)(int dimId, int fromX, int fromY, int fromZ, int toX, int toY, int toZ, int face);
 typedef void(__stdcall *fn_set_chunk_callbacks)(void *isChunkLoaded, void *loadChunk, void *unloadChunk, void *getLoadedChunks, void *isChunkInUse, void *getChunkSnapshot, void *unloadChunkRequest, void *regenerateChunk, void *refreshChunk);
 typedef void(__stdcall *fn_set_block_info_callbacks)(void *getSkyLight, void *getBlockLight, void *getBiomeId, void *setBiomeId);
-typedef void(__stdcall *fn_set_world_entity_callbacks)(void *getWorldEntities);
+typedef void(__stdcall *fn_set_world_entity_callbacks)(void *getWorldEntities, void *getChunkEntities);
 typedef void(__stdcall *fn_fire_chunk_load)(int dimId, int chunkX, int chunkZ, int isNewChunk);
 typedef int(__stdcall *fn_fire_chunk_unload)(int dimId, int chunkX, int chunkZ);
 
@@ -373,7 +373,8 @@ void Initialize()
         (void *)&NativeSetBiomeId);
 
     s_managedSetWorldEntityCallbacks(
-        (void *)&NativeGetWorldEntities);
+        (void *)&NativeGetWorldEntities,
+        (void *)&NativeGetChunkEntities);
 
     LogInfo("fourkit", "FourKit initialized successfully.");
 }

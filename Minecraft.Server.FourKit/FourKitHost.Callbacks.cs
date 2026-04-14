@@ -149,11 +149,11 @@ public static partial class FourKitHost
     }
 
     [UnmanagedCallersOnly]
-    public static void SetWorldEntityCallbacks(IntPtr getWorldEntities)
+    public static void SetWorldEntityCallbacks(IntPtr getWorldEntities, IntPtr getChunkEntities)
     {
         try
         {
-            NativeBridge.SetWorldEntityCallbacks(getWorldEntities);
+            NativeBridge.SetWorldEntityCallbacks(getWorldEntities, getChunkEntities);
         }
         catch (Exception ex)
         {
