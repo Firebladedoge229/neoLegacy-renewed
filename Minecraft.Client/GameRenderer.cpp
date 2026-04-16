@@ -1550,12 +1550,26 @@ void GameRenderer::renderLevel(float a, int64_t until)
 				PIXEndNamedEvent();
 			}
 
+			glBlendFunc(GL_ZERO, GL_ONE);
+			PIXBeginNamedEvent(0,"Third pass level render");
+			int visibleTopTransparentChunks = levelRenderer->render(cameraEntity, 2, a, updateChunks);
+			PIXEndNamedEvent();
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			if (visibleTopTransparentChunks > 0)
+			{
+				PIXBeginNamedEvent(0,"Third pass level direct render");
+				levelRenderer->renderChunksDirect(2, a);
+				PIXEndNamedEvent();
+			}
+
 			GL11::glShadeModel(GL11::GL_FLAT);
 		}
 		else
 		{
 			PIXBeginNamedEvent(0,"Second pass level render");
 			levelRenderer->render(cameraEntity, 1, a, updateChunks);
+			PIXEndNamedEvent();
+			levelRenderer->render(cameraEntity, 2, a, updateChunks);
 			PIXEndNamedEvent();
 		}
 
