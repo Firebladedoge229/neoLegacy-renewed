@@ -46,6 +46,7 @@ private:
 
 public:
 	static const int CHUNK_XZSIZE = 16;
+	static const int CHUNK_RENDER_LAYERS = 3;
 #ifdef _LARGE_WORLDS
 	static const int CHUNK_SIZE = 16;
 #else
@@ -274,8 +275,10 @@ public:
 	// Visible chunk lists built by cull(), consumed by renderChunks()
 	int *visibleLists_layer0;
 	int *visibleLists_layer1;
+	int *visibleLists_layer2;
 	int visibleCount_layer0;
 	int visibleCount_layer1;
+	int visibleCount_layer2;
 
 	bool				dirtyChunkPresent;
 	int64_t				lastDirtyChunkFound;

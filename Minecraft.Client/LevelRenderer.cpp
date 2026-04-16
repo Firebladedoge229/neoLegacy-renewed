@@ -160,13 +160,15 @@ LevelRenderer::LevelRenderer(Minecraft *mc, Textures *textures)
 
 	visibleLists_layer0 = nullptr;
 	visibleLists_layer1 = nullptr;
+	visibleLists_layer2 = nullptr;
 	visibleCount_layer0 = 0;
 	visibleCount_layer1 = 0;
+	visibleCount_layer2 = 0;
 
 	this->mc = mc;
 	this->textures = textures;
 
-	chunkLists = MemoryTracker::genLists(getGlobalChunkCount()*2);		// *2 here is because there is one renderlist per chunk here for each of the opaque & transparent layers
+	chunkLists = MemoryTracker::genLists(getGlobalChunkCount() * CHUNK_RENDER_LAYERS);		// One render list per chunk render layer.
 	globalChunkFlags = new unsigned char[getGlobalChunkCount()];
 	memset(globalChunkFlags, 0, getGlobalChunkCount());
 
@@ -464,8 +466,10 @@ void LevelRenderer::allChanged(int playerIndex)
 	// Free old visible chunk lists
 	delete[] visibleLists_layer0;
 	delete[] visibleLists_layer1;
+	delete[] visibleLists_layer2;
 	visibleLists_layer0 = nullptr;
 	visibleLists_layer1 = nullptr;
+	visibleLists_layer2 = nullptr;
 
 	chunks[playerIndex] = ClipChunkArray(xChunks * yChunks * zChunks);
 	//	sortedChunks[playerIndex] = new vector<Chunk *>(xChunks * yChunks * zChunks);		// 4J - removed - not sorting our chunks anymore
@@ -503,8 +507,10 @@ void LevelRenderer::allChanged(int playerIndex)
 	int totalChunkCount = xChunks * yChunks * zChunks;
 	visibleLists_layer0 = new int[totalChunkCount];
 	visibleLists_layer1 = new int[totalChunkCount];
+	visibleLists_layer2 = new int[totalChunkCount];
 	visibleCount_layer0 = 0;
 	visibleCount_layer1 = 0;
+	visibleCount_layer2 = 0;
 
 	if (level != nullptr)
 	{
@@ -784,8 +790,18 @@ void LevelRenderer::renderChunksDirect(int layer, double alpha)
 	glPushMatrix();
 	glTranslatef(static_cast<float>(-xOff), static_cast<float>(-yOff), static_cast<float>(-zOff));
 
-	int *lists = (layer == 0) ? visibleLists_layer0 : visibleLists_layer1;
-	int numVisible = (layer == 0) ? visibleCount_layer0 : visibleCount_layer1;
+	int *lists = visibleLists_layer2;
+	int numVisible = visibleCount_layer2;
+	if (layer == 0)
+	{
+		lists = visibleLists_layer0;
+		numVisible = visibleCount_layer0;
+	}
+	else if (layer == 1)
+	{
+		lists = visibleLists_layer1;
+		numVisible = visibleCount_layer1;
+	}
 	bool first = true;
 	if (lists != nullptr)
 	{
@@ -872,8 +888,18 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 	int count = 0;
 
 	// Use compact visible lists built during cull() instead of iterating all chunks
-	int *lists = (layer == 0) ? visibleLists_layer0 : visibleLists_layer1;
-	int numVisible = (layer == 0) ? visibleCount_layer0 : visibleCount_layer1;
+	int *lists = visibleLists_layer2;
+	int numVisible = visibleCount_layer2;
+	if (layer == 0)
+	{
+		lists = visibleLists_layer0;
+		numVisible = visibleCount_layer0;
+	}
+	else if (layer == 1)
+	{
+		lists = visibleLists_layer1;
+		numVisible = visibleCount_layer1;
+	}
 	if (lists != nullptr)
 	{
 		for (int i = 0; i < numVisible; i++)
@@ -892,8 +918,8 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 		{
 			if( !pClipChunk->visible ) continue;
 			if( pClipChunk->globalIdx == -1 ) continue;
-			if( ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag ) continue;
-			int list = pClipChunk->globalIdx * 2 + layer;
+			if (layer < 2 && ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag) continue;
+			int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + layer;
 			list += chunkLists;
 			if(RenderManager.CBuffCall(list, first))
 				first = false;
@@ -912,11 +938,11 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 	{
 		if( !pClipChunk->visible ) continue;													// This will be set if the chunk isn't visible, or isn't compiled, or has both empty flags set
 		if( pClipChunk->globalIdx == -1 ) continue;												// Not sure if we should ever encounter this... TODO check
-		if( ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag ) continue;	// Check that this particular layer isn't empty
+		if (layer < 2 && ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag) continue;	// Check that this particular layer isn't empty
 		if( !(globalChunkFlags[pClipChunk->globalIdx] & LevelRenderer::CHUNK_FLAG_CUT_OUT) ) continue;	// Does this chunk contain any cut out geometry
 
 		// List can be calculated directly from the chunk's global idex
-		int list = pClipChunk->globalIdx * 2 + layer;
+		int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + layer;
 		list += chunkLists;
 
 		if(RenderManager.CBuffCallCutOut(list, first))
@@ -2639,6 +2665,7 @@ void LevelRenderer::cull(Culler *culler, float a)
 	// Reset visible chunk lists for this frame
 	visibleCount_layer0 = 0;
 	visibleCount_layer1 = 0;
+	visibleCount_layer2 = 0;
 
 	// Column-level frustum culling: test one AABB per XZ column before testing individual Y chunks.
 	// At dist 64 this reduces ~278K clip() calls to ~17K column tests + per-chunk tests only for visible columns.
@@ -2672,13 +2699,6 @@ void LevelRenderer::cull(Culler *culler, float a)
 				ClipChunk *pClipChunk = &chunks[playerIndex][(z * yChunks + y) * xChunks + x];
 				unsigned char flags = pClipChunk->globalIdx == -1 ? 0 : globalChunkFlags[ pClipChunk->globalIdx ];
 
-				// Skip frustum test for confirmed-empty compiled chunks - they have nothing to render
-				if ((flags & CHUNK_FLAG_COMPILED) && (flags & CHUNK_FLAG_EMPTYBOTH) == CHUNK_FLAG_EMPTYBOTH)
-				{
-					pClipChunk->visible = false;
-					continue;
-				}
-
 				bool clipres = clip(pClipChunk->aabb, fdraw);
 
 				if ( (flags & CHUNK_FLAG_COMPILED ) && ( ( flags & CHUNK_FLAG_EMPTYBOTH ) != CHUNK_FLAG_EMPTYBOTH ) )
@@ -2699,11 +2719,12 @@ void LevelRenderer::cull(Culler *culler, float a)
 				// Build compact visible chunk lists for renderChunks()
 				if (pClipChunk->visible && pClipChunk->globalIdx != -1 && visibleLists_layer0 != nullptr)
 				{
-					int list = pClipChunk->globalIdx * 2 + chunkLists;
+					int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + chunkLists;
 					if (!((flags & CHUNK_FLAG_EMPTY0) == CHUNK_FLAG_EMPTY0))
 						visibleLists_layer0[visibleCount_layer0++] = list;
 					if (!((flags & CHUNK_FLAG_EMPTY1) == CHUNK_FLAG_EMPTY1))
 						visibleLists_layer1[visibleCount_layer1++] = list + 1;
+					visibleLists_layer2[visibleCount_layer2++] = list + 2;
 				}
 			}
 		}
