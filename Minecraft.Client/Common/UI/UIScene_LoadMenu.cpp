@@ -287,6 +287,12 @@ UIScene_LoadMenu::UIScene_LoadMenu(int iPad, void *initData, UILayer *parentLaye
 				WCHAR TempString[256];
 				swprintf((WCHAR *)TempString, 256, L"%ls: %ls", app.GetString(IDS_SLIDER_DIFFICULTY), app.GetString(IDS_HARDCORE));
 				m_sliderDifficulty.init(TempString, eControl_Difficulty, 0, 4, 4);
+
+				// Hardcore locks game mode to Survival
+				m_iGameModeId = GameType::SURVIVAL->getId();
+				m_bGameModeCreative = false;
+				m_sliderGamemode.setLabel(app.GetString(IDS_GAMEMODE_SURVIVAL));
+			    m_sliderGamemode.SetSliderValue(0);
 			}
 		}
 #endif
@@ -427,15 +433,7 @@ void UIScene_LoadMenu::updateTooltips()
 void UIScene_LoadMenu::updateComponents()
 {
 	m_parentLayer->showComponent(m_iPad,eUIComponent_Panorama,true);
-
-	if(RenderManager.IsWidescreen())
-	{
-		m_parentLayer->showComponent(m_iPad,eUIComponent_Logo,true);
-	}
-	else
-	{
-		m_parentLayer->showComponent(m_iPad,eUIComponent_Logo,false);
-	}
+	m_parentLayer->showComponent(m_iPad,eUIComponent_Logo,false);
 }
 
 wstring UIScene_LoadMenu::getMoviePath()
@@ -582,7 +580,9 @@ void UIScene_LoadMenu::tick()
 				m_MoreOptionsParams.bAllowFriendsOfFriends = TRUE;
 			}
 
-			m_bHardcore = app.GetGameHostOption(uiHostOptions, eGameHostOption_Hardcore) > 0;
+			// Use thumbnail host options if available, otherwise preserve the level.dat value
+			if (app.GetGameHostOption(uiHostOptions, eGameHostOption_Hardcore) > 0)
+				m_bHardcore = true;
 			if (m_bHardcore)
 			{
 				WCHAR TempString[256];

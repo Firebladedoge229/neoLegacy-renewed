@@ -55,10 +55,10 @@ function(configure_compiler_target target)
   # MSVC
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${target} PRIVATE
-      $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C,CXX>>:/GL>
+      $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C,CXX>>:/GL /Zi>
     )
     target_link_options(${target} PRIVATE
-      $<$<CONFIG:Release>:/LTCG:incremental>
+      $<$<CONFIG:Release>:/LTCG:incremental /DEBUG /OPT:REF /OPT:ICF>
     )
   endif()
 
