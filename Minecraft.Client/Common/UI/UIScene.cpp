@@ -310,19 +310,27 @@ void UIScene::loadMovie()
 
 	if(!app.hasArchiveFile(moviePath))
 	{
-		app.DebugPrintf("WARNING: Could not find iggy movie %ls, falling back on 720\n", moviePath.c_str());
+		app.DebugPrintf("WARNING: Could not find iggy movie %ls, trying other resolutions\n", moviePath.c_str());
 
+		// Try 720 first, then 1080 as final fallback
 		moviePath = getMoviePath();
 		moviePath.append(L"720.swf");
 		m_loadedResolution = eSceneResolution_720;
 
 		if(!app.hasArchiveFile(moviePath))
 		{
-			app.DebugPrintf("ERROR: Could not find any iggy movie for %ls!\n", moviePath.c_str());
+			moviePath = getMoviePath();
+			moviePath.append(L"1080.swf");
+			m_loadedResolution = eSceneResolution_1080;
+
+			if(!app.hasArchiveFile(moviePath))
+			{
+				app.DebugPrintf("ERROR: Could not find any iggy movie for %ls!\n", moviePath.c_str());
 #ifndef _CONTENT_PACKAGE
-			__debugbreak();
+				__debugbreak();
 #endif
-			app.FatalLoadError();
+				app.FatalLoadError();
+			}
 		}
 	}
 
