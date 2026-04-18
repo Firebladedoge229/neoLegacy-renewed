@@ -8,6 +8,9 @@
 #include "Settings.h"
 #include "PlayerList.h"
 #include "MultiPlayerLevel.h"
+#include "Minecraft.h"
+#include "Common/Audio/SoundEngine.h"
+#include "../Minecraft.World/SoundTypes.h"
 
 #include "../Minecraft.World/net.minecraft.network.packet.h"
 #include "../Minecraft.World/net.minecraft.world.damagesource.h"
@@ -1089,6 +1092,13 @@ void ServerPlayer::changeDimension(int i)
 			// 4J: Removed on the advice of the mighty King of Achievments (JV)
 			// awardStat(GenericStats::portal(), GenericStats::param_portal());
 		}
+		// play the travel whoosh right before the actual dimension swap
+		Minecraft *mc = Minecraft::GetInstance();
+		if (mc != nullptr && mc->soundEngine != nullptr)
+		{
+			mc->soundEngine->playUI(eSoundType_PORTAL_TRAVEL, 1, 1.0f);
+		}
+
 		server->getPlayers()->toggleDimension( dynamic_pointer_cast<ServerPlayer>(shared_from_this()), i);
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 		if (portalDestModified)
