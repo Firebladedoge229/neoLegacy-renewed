@@ -30,13 +30,11 @@ void CustomHeadLayer::render(shared_ptr<LivingEntity> mob,
                               float headRot, float headRotX,
                               float scale, bool useCompiled)
 {
-  
     shared_ptr<ItemInstance> helmet = mob->getArmor(3);
     if (!helmet) return;
 
     Item* item = helmet->getItem();
     if (!item) return;
-
 
     if (mob->instanceof(eTYPE_PLAYER))
     {
@@ -46,21 +44,19 @@ void CustomHeadLayer::render(shared_ptr<LivingEntity> mob,
     }
 
     bool isBaby  = mob->isBaby();
-    bool isSkull = (item->id == Tile::skull_Id);
+    // FIX: Riconosciamo correttamente lo SkullItem invece dell'ID del Blocco
+    bool isSkull = (dynamic_cast<SkullItem*>(item) != nullptr);
 
     glPushMatrix();
-
    
     if (isBaby)
         glTranslatef(0.0f, 0.2f, 0.0f);
-
 
     headPart->translateTo(0.0625f);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     if (isSkull)
     {
-
         glScalef(1.1875f, -1.1875f, -1.1875f);
 
         if (isBaby)
@@ -84,7 +80,6 @@ void CustomHeadLayer::render(shared_ptr<LivingEntity> mob,
     }
     else if (item->id < 256)
     {
-   
         glTranslatef(0.0f, -0.25f, 0.0f);
         glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
         glScalef(0.625f, -0.625f, -0.625f);
@@ -94,7 +89,6 @@ void CustomHeadLayer::render(shared_ptr<LivingEntity> mob,
 
         glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 
-       
         Minecraft* mc = Minecraft::GetInstance();
         if (mc)
         {

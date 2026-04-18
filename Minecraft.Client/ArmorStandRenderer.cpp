@@ -21,11 +21,9 @@ static const float DEG_TO_RAD = 3.14159265f / 180.0f;
 
 ResourceLocation ArmorStandRenderer::LOC_ARMOR_STAND = ResourceLocation(TN_MOB_ARMORSTAND);
 
-
 ArmorStandRenderer::ArmorStandArmorLayer::ArmorStandArmorLayer(LivingEntityRenderer* renderer)
     : HumanoidArmorLayer(renderer)
 {
-
     delete armorModel1;
     delete armorModel2;
     armorModel1 = new ArmorStandArmorModel(0.5f);
@@ -46,20 +44,17 @@ ArmorStandRenderer::ArmorStandRenderer()
     armorLayer = new ArmorStandArmorLayer(this);
 
     ArmorStandModel* m = static_cast<ArmorStandModel*>(getModel());
-
-
+    
+    
     headLayer = m ? new CustomHeadLayer(m->head, this) : nullptr;
 }
 
 ArmorStandRenderer::~ArmorStandRenderer() {}
 
-
-
 ResourceLocation* ArmorStandRenderer::getTextureLocation(shared_ptr<Entity> entity)
 {
     return &LOC_ARMOR_STAND;
 }
-
 
 bool ArmorStandRenderer::shouldShowName(shared_ptr<LivingEntity> entity)
 {
@@ -85,14 +80,12 @@ void ArmorStandRenderer::setupRotations(shared_ptr<LivingEntity> mob,
     }
 }
 
-
 void ArmorStandRenderer::render(shared_ptr<Entity> entity,
                                 double x, double y, double z,
                                 float rot, float a)
 {
     LivingEntityRenderer::render(entity, x, y, z, rot, a);
 }
-
 
 void ArmorStandRenderer::renderModel(shared_ptr<LivingEntity> mob,
                                      float wp, float ws, float bob,
@@ -120,6 +113,7 @@ void ArmorStandRenderer::renderModel(shared_ptr<LivingEntity> mob,
         ll.x * DEG_TO_RAD, ll.y * DEG_TO_RAD, ll.z * DEG_TO_RAD,
         rl.x * DEG_TO_RAD, rl.y * DEG_TO_RAD, rl.z * DEG_TO_RAD
     );
+    
     if (armorLayer)
     {
         auto applyPose = [&](HumanoidModel* am)
@@ -157,7 +151,7 @@ void ArmorStandRenderer::renderModel(shared_ptr<LivingEntity> mob,
 
     LivingEntityRenderer::renderModel(mob, wp, ws, bob, headRotMinusBodyRot, headRotx, scale);
 
-
+    
     if (headLayer)
     {
         float fScale = 1.0f / 16.0f;
@@ -171,39 +165,7 @@ void ArmorStandRenderer::renderModel(shared_ptr<LivingEntity> mob,
 
 void ArmorStandRenderer::additionalRendering(shared_ptr<LivingEntity> mob, float a)
 {
-    shared_ptr<ItemInstance> headGear = mob->getArmor(3);
-    if (!headGear) return;
-
-
-    if ((mob->getAnimOverrideBitmask() & (1 << HumanoidModel::eAnim_DontRenderArmour)) != 0) return;
-
-    Item* item = headGear->getItem();
-    if (!item) return;
-
- 
-    if (dynamic_cast<SkullItem*>(item)) return;
-
- 
-    if (item->id >= 256) return;
-
-    ArmorStandModel* m = static_cast<ArmorStandModel*>(getModel());
-    if (!m || !m->head) return;
-
-    glPushMatrix();
-    m->head->translateTo(1.0f / 16.0f);
-
-    if (Tile::tiles[headGear->id] != nullptr
-        && TileRenderer::canRender(Tile::tiles[headGear->id]->getRenderShape()))
-    {
-        float s = 10.0f / 16.0f;
-        glTranslatef(0.0f, -4.0f / 16.0f, 0.0f);
-        glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-        glScalef(s, -s, s);
-    }
-
-    this->entityRenderDispatcher->itemInHandRenderer->renderItem(mob, headGear, 0);
-
-    glPopMatrix();
+    
 }
 
 
@@ -217,58 +179,13 @@ int ArmorStandRenderer::prepareArmor(shared_ptr<LivingEntity> mob, int layer, fl
     Item* item = itemInstance->getItem();
     if (!item) return -1;
 
-
-    SkullItem* skullItem = dynamic_cast<SkullItem*>(item);
-    if (skullItem && layer == 0)
-    {
-        HumanoidModel* am = armorLayer->getArmorModel(layer);
-        if (!am) return -1;
-
-
-        am->head->visible  = true;
-        if (am->hair) am->hair->visible = false;
-        am->body->visible  = false;
-        am->arm0->visible  = false;
-        am->arm1->visible  = false;
-        am->leg0->visible  = false;
-        am->leg1->visible  = false;
-
-        int skullType = itemInstance->getAuxValue() & 0xF;
-        switch (skullType)
-        {
-        case SkullTileEntity::TYPE_WITHER:
-            bindTexture(&PlayerRenderer::WITHER_SKELETON_LOCATION);
-            break;
-        case SkullTileEntity::TYPE_ZOMBIE:
-            bindTexture(&PlayerRenderer::ZOMBIE_LOCATION);
-            break;
-        case SkullTileEntity::TYPE_CREEPER:
-            bindTexture(&PlayerRenderer::CREEPER_LOCATION);
-            break;
-        case SkullTileEntity::TYPE_CHAR:
-            bindTexture(&PlayerRenderer::DEFAULT_LOCATION);
-            break;
-        case SkullTileEntity::TYPE_SKELETON:
-        default:
-            bindTexture(&PlayerRenderer::SKELETON_LOCATION);
-            break;
-        }
-
-        setArmor(am);
-        am->attackTime = model->attackTime;
-        am->riding     = model->riding;
-        am->young      = mob->isBaby();
-        return 1;
-    }
-
     ArmorItem* armorItem = dynamic_cast<ArmorItem*>(item);
-    if (!armorItem) return -1;
+    if (!armorItem) return -1; 
 
     bindTexture(HumanoidMobRenderer::getArmorLocation(armorItem, layer));
 
     HumanoidModel* am = armorLayer->getArmorModel(layer);
     if (!am) return -1;
-
 
     am->head->visible = (layer == 0);
     if (am->hair) am->hair->visible = (layer == 0);
