@@ -647,6 +647,17 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_MODEL_GEOM
   "${CMAKE_CURRENT_SOURCE_DIR}/ModelPart.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TexOffs.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/TexOffs.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AbstractArmorLayer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AbstractArmorLayer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HumanoidArmorLayer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HumanoidArmorLayer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ArmorStandArmorModel.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ArmorStandArmorModel.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ItemInHandLayer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ItemInHandLayer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CustomHeadLayer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CustomHeadLayer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RenderLayer.h"
 )
 source_group("net/minecraft/client/model/geom" FILES ${_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_MODEL_GEOM})
 
@@ -729,6 +740,8 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_PARTICLE
   "${CMAKE_CURRENT_SOURCE_DIR}/TerrainParticle.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/WaterDropParticle.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/WaterDropParticle.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ParticleType.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ParticleType.cpp"
 )
 source_group("net/minecraft/client/particle" FILES ${_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_PARTICLE})
 

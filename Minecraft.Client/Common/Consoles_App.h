@@ -24,6 +24,8 @@ using namespace std;
 #include "../ArchiveFile.h"
 #include "lce_filesystem/FolderFile.h"
 
+
+
 typedef struct _JoinFromInviteData
 {
 	DWORD dwUserIndex; // dwUserIndex
@@ -53,6 +55,7 @@ class Model;
 class ModelPart;
 class StringTable;
 class Merchant;
+struct _SkinAdjustments;
 
 class CMinecraftAudio;
 
@@ -64,7 +67,7 @@ class CMinecraftApp
 {
 private:
 	static int s_iHTMLFontSizesA[eHTMLSize_COUNT];
-
+	unordered_map<unsigned int, _SkinAdjustments> m_SkinAdjustmentsMap;
 public:
 
 	CMinecraftApp();
@@ -82,6 +85,8 @@ public:
 	// storing credits text from the DLC
 	std::vector <wstring > m_vCreditText; // hold the credit text lines so we can avoid duplicating them
 
+	void GetSkinAdjustments(_SkinAdjustments* out,unsigned int skinId);
+	void SetSkinAdjustments(unsigned int skinId, const _SkinAdjustments& adj);
 
 	// In builds prior to TU5, the size of the GAME_SETTINGS struct was 204 bytes. We added a few new values to the internal struct in TU5, and even though we
 	// changed the size of the ucUnused array to be decreased by the size of the values we added, the packing of the struct has introduced some extra

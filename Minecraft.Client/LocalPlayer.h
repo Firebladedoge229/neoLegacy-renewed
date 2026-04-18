@@ -95,7 +95,7 @@ public:
 	virtual void serverAiStep();
 
 protected:
-	bool isEffectiveAi();
+	bool isEffectiveAi() const;
 
 public:
 	virtual void aiStep();

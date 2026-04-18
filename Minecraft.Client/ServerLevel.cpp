@@ -1283,22 +1283,6 @@ PortalForcer *ServerLevel::getPortalForcer()
 	return portalForcer;
 }
 
-void ServerLevel::sendParticles(const wstring &name, double x, double y, double z, int count)
-{
-	sendParticles(name, x + 0.5f, y + 0.5f, z + 0.5f, count, 0.5f, 0.5f, 0.5f, 0.02f);
-}
-
-void ServerLevel::sendParticles(const wstring &name, double x, double y, double z, int count, double xDist, double yDist, double zDist, double speed)
-{
-	shared_ptr<Packet> packet = std::make_shared<LevelParticlesPacket>( name, static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(xDist), static_cast<float>(yDist), static_cast<float>(zDist), static_cast<float>(speed), count );
-
-	for(auto& it : players)
-	{
-		shared_ptr<ServerPlayer> player = dynamic_pointer_cast<ServerPlayer>(it);
-		player->connection->send(packet);
-	}
-}
-
 // 4J Stu - Sometimes we want to update tiles on the server from the main thread (eg SignTileEntity when string verify returns)
 void ServerLevel::queueSendTileUpdate(int x, int y, int z)
 {
@@ -1632,3 +1616,34 @@ void ServerLevel::flagEntitiesToBeRemoved(unsigned int *flags, bool *removedFoun
 		chunkMap->flagEntitiesToBeRemoved(flags, removedFound);
 	}
 }
+void ServerLevel::sendParticles(const ParticleType* type, bool longDistance, double x, double y, double z, int count, double dx, double dy, double dz, double speed, arrayWithLength<int> data)
+{
+    auto packet = make_shared<LevelParticlesPacket>(
+        type,
+        longDistance,
+        (float)x, (float)y, (float)z,
+        (float)dx, (float)dy, (float)dz,
+        (float)speed,
+        count,
+        data
+    );
+
+    for (auto const& p : players)
+    {
+        shared_ptr<ServerPlayer> player = dynamic_pointer_cast<ServerPlayer>(p);
+        if (player != nullptr && player->connection != nullptr)
+        {
+            double distSqr = player->distanceToSqr(x, y, z);
+            if (distSqr <= 256.0 || (longDistance && distSqr <= 65536.0))
+            {
+                player->connection->send(packet);
+            }
+        }
+    }
+}
+
+void ServerLevel::sendParticles(const ParticleType* type, double x, double y, double z, int count, double dx, double dy, double dz, double speed, arrayWithLength<int> data)
+{
+    this->sendParticles(type, false, x, y, z, count, dx, dy, dz, speed, data);
+}
+

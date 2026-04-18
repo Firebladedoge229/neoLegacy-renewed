@@ -157,7 +157,7 @@ void LocalPlayer::serverAiStep()
 	//	mapPlayerChunk(8);
 }
 
-bool LocalPlayer::isEffectiveAi()
+bool LocalPlayer::isEffectiveAi() const
 {
 	return true;
 }

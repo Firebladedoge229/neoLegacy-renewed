@@ -2065,3 +2065,11 @@ void ServerPlayer::debug_setPosition(double x, double y, double z, double nYRot,
 	connection->teleport(x, y, z, nYRot, nXRot);
 }
 #endif
+bool ServerPlayer::isSpectator()
+{
+    if (gameMode == nullptr)
+    {
+        return false;
+    }
+    return gameMode->getGameType() == GameType::SPECTATOR;
+}

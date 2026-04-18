@@ -503,6 +503,7 @@ private:
 
 	unsigned int getPlayerGamePrivilege(EPlayerGamePrivileges privilege);
 public:
+	static _SkinAdjustments getSkinAdjustmentsById(unsigned int skinId);
 	unsigned int getAllPlayerGamePrivileges() { return getPlayerGamePrivilege(ePlayerGamePrivilege_All); }
 
 	static unsigned int getPlayerGamePrivilege(unsigned int uiGamePrivileges, EPlayerGamePrivileges privilege);
@@ -522,6 +523,7 @@ public:
 	bool hasInvisiblePrivilege();
 	bool hasInvulnerablePrivilege();
 	bool isModerator();
+	bool isSpectator();
 
 	static void enableAllPlayerPrivileges(unsigned int &uigamePrivileges, bool enable);
 	void enableAllPlayerPrivileges(bool enable);

@@ -2051,7 +2051,7 @@ HitResult *LivingEntity::pick(double range, float a)
 	return level->clip(from, to);
 }
 
-bool LivingEntity::isEffectiveAi()
+bool LivingEntity::isEffectiveAi()const
 {
 	return !level->isClientSide;
 }

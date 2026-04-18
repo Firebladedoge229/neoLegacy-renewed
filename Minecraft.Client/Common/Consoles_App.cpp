@@ -242,6 +242,34 @@ CMinecraftApp::CMinecraftApp()
 }
 
 
+void CMinecraftApp::GetSkinAdjustments(_SkinAdjustments* out,
+                                        unsigned int skinId)
+{
+    _SkinAdjustments adj; 
+
+    EnterCriticalSection(&csAdditionalSkinBoxes);
+
+    if (!m_SkinAdjustmentsMap.empty())
+    {
+        auto it = m_SkinAdjustmentsMap.find(skinId);
+        if (it != m_SkinAdjustmentsMap.end())
+            adj = it->second;
+    }
+
+    LeaveCriticalSection(&csAdditionalSkinBoxes);
+
+    *out = adj;
+}
+
+void CMinecraftApp::SetSkinAdjustments(unsigned int skinId,
+                                        const _SkinAdjustments& adj)
+{
+    EnterCriticalSection(&csAdditionalSkinBoxes);
+
+    m_SkinAdjustmentsMap[skinId] = adj; 
+
+    LeaveCriticalSection(&csAdditionalSkinBoxes);
+}
 
 void CMinecraftApp::DebugPrintf(const char *szFormat, ...)
 {

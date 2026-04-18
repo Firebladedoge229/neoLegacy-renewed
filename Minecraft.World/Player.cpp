@@ -2794,6 +2794,47 @@ unsigned int Player::getPlayerGamePrivilege(unsigned int uiGamePrivileges, EPlay
 	return 0;
 }
 
+
+
+
+_SkinAdjustments Player::getSkinAdjustmentsById(unsigned int skinId)
+{
+    
+    _SkinAdjustments adj = _SkinAdjustments();
+
+    
+    if ((int)skinId < 0)
+    {
+       
+        app.GetSkinAdjustments(&adj, skinId);
+
+        
+        unsigned int rawId = skinId & 0x7FFFFFFF;
+
+        
+        if (rawId == 2 || rawId == 3 || rawId == 0xC8 || rawId == 0xC9 || 
+            rawId == 0x194 || rawId == 0x195 || rawId == 0x1F8 || rawId == 0x220 || 
+            rawId == 0x23A || rawId == 0x23D || rawId == 0x247)
+        {
+            
+            adj.data[17] = 2; 
+        }
+        else if (rawId == 0x1F4)
+        {
+           
+            adj.data[17] = 5;
+        }
+        else if (rawId == 0x1FA)
+        {
+           
+            adj.data[17] = 6;
+        }
+    }
+
+    
+    return adj;
+}
+
 void Player::setPlayerGamePrivilege(EPlayerGamePrivileges privilege, unsigned int value)
 {
 	Player::setPlayerGamePrivilege(m_uiGamePrivileges,privilege,value);
@@ -3204,3 +3245,8 @@ void Player::SetPlayerNameValidState(bool bState)
 	}
 }
 #endif
+
+bool Player::isSpectator()
+{
+    return false;
+}

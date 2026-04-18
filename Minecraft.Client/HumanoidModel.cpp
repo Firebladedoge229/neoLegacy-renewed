@@ -968,3 +968,38 @@ void HumanoidModel::render(HumanoidModel *model, float scale, bool usecompiled)
 	if (pants1)
 		pants1->render(scale, usecompiled,(m_uiAnimOverrideBitmask&(1<<eAnim_DisableRenderPants1))>0);
 }
+
+void HumanoidModel::setAllVisible(bool v) {
+   
+    head->visible  = v;
+    hair->visible  = v;
+    body->visible  = v;
+    arm1->visible  = v;
+    arm0->visible  = v;
+    leg0->visible  = v;
+    leg1->visible  = v;
+}
+
+void HumanoidModel::translateToHandItem(float scale) {
+   
+    arm1->translateTo(scale);
+}
+
+bool HumanoidModel::IsBodyPartDisabled(animbits bit) {
+    return (m_uiAnimOverrideBitmask & (1u << bit)) != 0;
+}
+
+void HumanoidModel::copyPropertiesFrom(HumanoidModel* other) {
+    if (!other) return;
+   
+    idle          = other->idle;
+    sneaking      = other->sneaking;
+    bowAndArrow   = other->bowAndArrow;
+    eating        = other->eating;
+    eating_t      = other->eating_t;
+    eating_swing  = other->eating_swing;
+    holdingLeftHand  = other->holdingLeftHand;
+    holdingRightHand = other->holdingRightHand;
+    m_uiAnimOverrideBitmask = other->m_uiAnimOverrideBitmask;
+    m_fYOffset    = other->m_fYOffset;
+}

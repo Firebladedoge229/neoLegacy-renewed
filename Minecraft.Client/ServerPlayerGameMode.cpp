@@ -454,3 +454,8 @@ void ServerPlayerGameMode::setGameRules(GameRulesInstance *rules)
 	if(m_gameRules != nullptr) delete m_gameRules;
 	m_gameRules = rules;
 }
+GameType* ServerPlayerGameMode::getGameType()
+{
+    
+     return gameModeForPlayer;
+}

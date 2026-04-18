@@ -1,23 +1,23 @@
+
 #pragma once
-#include "HumanoidModel.h" 
+#include "HumanoidModel.h"
 #include "ModelPart.h"
 
 class ArmorStandModel : public HumanoidModel
 {
 public:
-    
-    ModelPart *rightBodyStick;
-    ModelPart *leftBodyStick;
-    ModelPart *shoulderStick;
-    ModelPart *basePlate;
+    ModelPart* rightBodyStick;
+    ModelPart* leftBodyStick;
+    ModelPart* shoulderStick;
+    ModelPart* basePlate;
 
-    bool showArms;
-    bool showBasePlate;
-    bool isSmall;
+    ArmorStandModel(float scale = 0.0f);
+    virtual ~ArmorStandModel() {}
 
-    ArmorStandModel();
-    virtual void setupAnim(float time, float r, float bob, float yRot, float xRot, float scale, shared_ptr<Entity> entity, unsigned int uiBitmaskOverrideAnim ) override;
-    
+    virtual void setupAnim(float time, float r, float bob, float yRot, float xRot,
+                           float scale, shared_ptr<Entity> entity,
+                           unsigned int uiBitmaskOverrideAnim = 0) override;
+
     void setupPose(float hX, float hY, float hZ,
                    float bX, float bY, float bZ,
                    float lAX, float lAY, float lAZ,

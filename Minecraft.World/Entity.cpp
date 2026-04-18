@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "com.mojang.nbt.h"
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.item.enchantment.h"
@@ -2150,4 +2150,225 @@ unsigned int Entity::getAnimOverrideBitmask()
 	}
 
 	return m_uiAnimOverrideBitmask;
+}
+float Entity::getEyeHeight()
+{
+    return bbHeight * 0.85f;
+}
+bool Entity::ignoreExplosion()
+{
+    return false;
+}
+void Entity::kill()
+{
+    remove();
+}
+
+
+static const int DATA_CUSTOM_NAME_ID         = 2; 
+static const int DATA_CUSTOM_NAME_VISIBLE_ID = 3;  
+
+bool Entity::hasCustomName()
+{
+    if (!entityData) return false;
+    return !entityData->getString(DATA_CUSTOM_NAME_ID).empty();
+}
+
+wstring Entity::getCustomName()
+{
+    if (!entityData) return L"";
+    return entityData->getString(DATA_CUSTOM_NAME_ID);
+}
+
+void Entity::setCustomName(const wstring& name)
+{
+    if (entityData)
+        entityData->set(DATA_CUSTOM_NAME_ID, name);
+}
+
+bool Entity::isCustomNameVisible()
+{
+    if (!entityData) return false;
+    return entityData->getByte(DATA_CUSTOM_NAME_VISIBLE_ID) == 1;
+}
+
+void Entity::setCustomNameVisible(bool visible)
+{
+    if (entityData)
+        entityData->set(DATA_CUSTOM_NAME_VISIBLE_ID, static_cast<byte>(visible ? 1 : 0));
+}
+
+
+
+bool Entity::isOutsideWorldBorder()
+{
+    return m_outsideWorldBorder;
+}
+
+void Entity::setOutsideWorldBorder(bool outside)
+{
+    m_outsideWorldBorder = outside;
+}
+
+
+
+int Entity::getDirection()
+{
+    
+    int raw = (int)Mth::floor(yRot * 4.0f / 360.0f + 0.5f) & 3;
+    
+    switch (raw & 3)
+    {
+    case 0: return 2; // South
+    case 1: return 3; // West
+    case 2: return 0; // North
+    case 3: return 1; // East
+    default: return 0;
+    }
+}
+
+
+
+Vec3* Entity::getEyePosition(float partialTicks)
+{
+    if (partialTicks == 1.0f)
+    {
+        return Vec3::newTemp(x, y + getEyeHeight(), z);
+    }
+    double ix = xo + (x - xo) * partialTicks;
+    double iy = yo + (y - yo) * partialTicks;
+    double iz = zo + (z - zo) * partialTicks;
+    return Vec3::newTemp(ix, iy + getEyeHeight(), iz);
+}
+
+
+
+bool Entity::isInvulnerableTo(DamageSource* source)
+{
+    if (!entityData) return false;
+    
+    bool netInvuln = (entityData->getByte(DATA_SHARED_FLAGS_ID) >> 2 & 1) != 0;
+    if (!netInvuln) return false;
+    
+    if (source->isCreativePlayer()) return false;
+    return true;
+}
+
+void Entity::setInvulnerable(bool value)
+{
+    setSharedFlag(2, value);
+}
+
+
+
+wstring Entity::getName()
+{
+    if (hasCustomName())
+        return getCustomName();
+    return getAName();
+}
+
+
+
+void Entity::doSprintParticleEffect()
+{
+    int xt = Mth::floor(x);
+    int yt = Mth::floor(y - 0.2 - heightOffset);
+    int zt = Mth::floor(z);
+    int t  = level->getTile(xt, yt, zt);
+    int d  = level->getData(xt, yt, zt);
+    if (t > 0)
+    {
+        AABB* box = getBoundingBox();
+        level->addParticle(
+            PARTICLE_TILECRACK(t, d),
+            x + (random->nextFloat() - 0.5) * bbWidth,
+            box->y0 + 0.1,
+            z + (random->nextFloat() - 0.5) * bbWidth,
+            -(xd * 4.0),
+            1.5,
+            -(zd * 4.0));
+    }
+}
+
+
+
+bool Entity::shouldShowName()
+{
+    return isCustomNameVisible();
+}
+
+
+
+
+int Entity::getPortalEntranceOffset()
+{
+    
+    return portalTime;
+}
+
+int Entity::getPortalEntranceForwards()
+{
+    
+    return portalEntranceDir;
+}
+
+void Entity::getPortalEntranceBlock(int& ox, int& oy, int& oz)
+{
+   
+    ox = Mth::floor(x);
+    oy = Mth::floor(y);
+    oz = Mth::floor(z);
+}
+
+
+Vec3* Entity::getCommandSenderWorldPosition()
+{
+    return Vec3::newTemp(x, y, z);
+}
+
+Level* Entity::getCommandSenderWorld()
+{
+    return level;
+}
+
+shared_ptr<Entity> Entity::getCommandSenderEntity()
+{
+    return shared_from_this();
+}
+
+
+
+double Entity::distanceSqrToBlockPosCenter(int bx, int by, int bz)
+{
+    
+    double dx = x - (bx + 0.5);
+    double dy = y - (by + 0.5);
+    double dz = z - (bz + 0.5);
+    return dx*dx + dy*dy + dz*dz;
+}
+
+double Entity::distanceSqrToBlockPosCenter(BlockPos* pos)
+{
+    return distanceSqrToBlockPosCenter(pos->getX(), pos->getY(), pos->getZ());
+}
+
+void Entity::getSkinAdjustments(struct _SkinAdjustments* adj)
+{
+    
+    if (app.GetGameSettings((eGameSetting)0x18) || (this->m_skinAdjustments.data[17] & 0x1F1F810) != 0)
+    {
+        
+        *adj = this->m_skinAdjustments;
+    }
+    else
+    {
+        *adj = _SkinAdjustments();
+    }
+}
+
+void Entity::setSkinAdjustments(struct _SkinAdjustments* adj)
+{
+   
+    this->m_skinAdjustments = *adj;
 }
