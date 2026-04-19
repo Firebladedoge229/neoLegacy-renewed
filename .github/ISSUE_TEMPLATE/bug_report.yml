@@ -62,7 +62,7 @@ body:
   - type: input
     id: itsrevela
     attributes:
-      label: Is this reproducable in itsRevela/MinecraftConsoles? (https://github.com/itsRevela/MinecraftConsoles)
+      label: Is this reproducable in pieeebot/neoLegacy? (https://github.com/pieeebot/neoLegacy)
     validations:
       required: true
 

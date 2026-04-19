@@ -277,11 +277,10 @@ typedef XUID GameSessionUID;
 	#include "Durango/Iggy/gdraw/gdraw_d3d11.h"
 	#include "Durango/Durango_UIController.h"
 #elif defined _WINDOWS64
-	#include "Windows64/Sentient/MinecraftTelemetry.h"
+	#include "Windows64/Sentient/TelemetryEnum.h"
 	#include "Windows64Media/strings.h"
 	#include "Windows64/Windows64_App.h"
 	#include "Windows64/Sentient/DynamicConfigurations.h"
-	#include "Windows64/Sentient/SentientTelemetryCommon.h"
 	#include "Windows64/GameConfig/Minecraft.spa.h"
 	#include "Windows64/XML/ATGXmlParser.h"
 	#include "Windows64/Social/SocialManager.h"

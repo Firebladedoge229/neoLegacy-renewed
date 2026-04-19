@@ -1,4 +1,4 @@
-![banner](.gitea/banner.png)
+![banner](.github/banner.png)
 # neoLegacy Renewed
 This project aims to backport the newer title updates back to Legacy Console Edition (which is based on TU19).\
 Along with that, this project will also attempt to backport some newer Java Edition features deemed 'QoL'.
@@ -15,7 +15,7 @@ Along with that, this project will also attempt to backport some newer Java Edit
 - Leaderboard functionality
 
 # Our roadmap:
-![Roadmap](.gitea/roadmap.png)
+![Roadmap](.github/roadmap.png)
 
 - Port Title Update 25 (100% complete) ( 🎉 )
 - Port Title Update 31 (86.36% complete)
