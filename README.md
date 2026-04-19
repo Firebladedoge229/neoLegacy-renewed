@@ -1,14 +1,15 @@
 ![banner](.github/banner.png)
-# neoLegacy Renewed
+# neoLegacy Recrafted
 This project aims to backport the newer title updates back to Legacy Console Edition (which is based on TU19).\
 Along with that, this project will also attempt to backport some newer Java Edition features deemed 'QoL'.
 
 ### Exclusive Features
+- Pick block functionality
 - Modern chest dynamics (placing chests side-by-side, etc)
 
 ### In-progress Features:
-- Pick block functionality
 - In-game developer settings 
+- Expanded graphics customization
 
 ### Planned Features:
 - Minecraft Store functionality
