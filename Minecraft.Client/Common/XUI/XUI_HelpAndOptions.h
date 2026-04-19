@@ -55,6 +55,7 @@ protected:
 	HRESULT OnCustomMessage_Splitscreenplayer(bool bJoining, BOOL& bHandled);
 	HRESULT OnTransitionStart( XUIMessageTransition *pTransition, BOOL& bHandled );
 	HRESULT OnControlNavigate(XUIMessageControlNavigate *pControlNavigateData, BOOL& bHandled);
+	void RefreshDeveloperSettingsButtonState();
 	//HRESULT OnTMSDLCFileRetrieved( );
 public:
 

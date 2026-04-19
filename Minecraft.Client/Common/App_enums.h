@@ -181,6 +181,12 @@ enum eGameSetting
 	// PC
 	eGameSetting_VSync,
 	eGameSetting_ExclusiveFullscreen,
+	eGameSetting_FullscreenResolution,
+	eGameSetting_MaxFramerate,
+	eGameSetting_Mipmapping,
+	eGameSetting_Antialiasing,
+	eGameSetting_DeveloperSettings,
+	eGameSetting_PerformanceMode,
 
 };
 

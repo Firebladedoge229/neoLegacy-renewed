@@ -15,6 +15,14 @@ class UIScene_HelpAndOptionsMenu : public UIScene
 {
 private:
 	UIControl_Button m_buttons[BUTTONS_HAO_MAX];
+	void cacheBaseButtonPositions();
+	void setButtonY(int buttonIndex, int yPos);
+	void refreshDeveloperSettingsButtonState();
+	bool m_hasCachedBaseButtonY;
+	int m_baseSettingsY;
+	int m_baseCreditsY;
+	int m_baseReinstallY;
+	int m_baseDebugY;
 	UI_BEGIN_MAP_ELEMENTS_AND_NAMES(UIScene)
 		UI_MAP_ELEMENT( m_buttons[BUTTON_HAO_CHANGESKIN], "Button1")
 		UI_MAP_ELEMENT( m_buttons[BUTTON_HAO_HOWTOPLAY], "Button2")
@@ -41,6 +49,7 @@ protected:
 
 public:
 	virtual void handleReload();
+	virtual void handleGainFocus(bool navBack);
 
 	// INPUT
 	virtual void handleInput(int iPad, int key, bool repeat, bool pressed, bool released, bool &handled);

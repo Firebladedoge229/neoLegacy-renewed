@@ -1175,11 +1175,12 @@ void GameRenderer::render(float a, bool bFirst)
 	const int xMouse = Mouse::getX() * screenWidth / mc->width;
 	const int yMouse = screenHeight - Mouse::getY() * screenHeight / mc->height - 1;
 
-    const int maxFps = getFpsCap(mc->options->framerateLimit);
+	int maxFramerateSetting = app.GetGameSettings(ProfileManager.GetPrimaryPad(), eGameSetting_MaxFramerate);
+	const int maxFps = getFpsCap(maxFramerateSetting);
 
     if (mc->level != nullptr)
     {
-        if (mc->options->framerateLimit == 0)
+		if (maxFramerateSetting == 0)
         {
             renderLevel(a, 0);
         }
@@ -2263,7 +2264,9 @@ int GameRenderer::getFpsCap(int option)
 {
 	int maxFps = 200;
 	if (option == 1) maxFps = 120;
-	if (option == 2) maxFps = 35;
+	if (option == 2) maxFps = 60;
+	if (option == 3) maxFps = 35;
+	if (option == 4) maxFps = 30;
 	return maxFps;
 }
 

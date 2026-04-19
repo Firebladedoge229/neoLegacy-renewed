@@ -733,6 +733,12 @@ void UIScene::render(S32 width, S32 height, C4JRender::eViewportType viewport)
 	if(m_bIsReloading) return;
 	if(!m_hasTickedOnce || !swf) return;
 
+#ifdef _WINDOWS64
+	const int antialiasingSetting = app.GetGameSettings(ProfileManager.GetPrimaryPad(), eGameSetting_Antialiasing);
+	const IggyAntialiasing iggyAaMode = (antialiasingSetting != 0) ? IGGY_ANTIALIASING_Good : IGGY_ANTIALIASING_FontsOnly;
+	IggyPlayerSetAntialiasing(swf, iggyAaMode);
+#endif
+
 	if(viewport != C4JRender::VIEWPORT_TYPE_FULLSCREEN)
 	{
 		F32 originX, originY, viewW, viewH;

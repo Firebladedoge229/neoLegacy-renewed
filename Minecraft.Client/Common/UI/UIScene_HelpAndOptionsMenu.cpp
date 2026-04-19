@@ -3,8 +3,86 @@
 #include "UIScene_HelpAndOptionsMenu.h"
 #include "../../Minecraft.h"
 
+void UIScene_HelpAndOptionsMenu::cacheBaseButtonPositions()
+{
+	if(m_hasCachedBaseButtonY)
+	{
+		return;
+	}
+
+	m_buttons[BUTTON_HAO_SETTINGS].UpdateControl();
+	m_buttons[BUTTON_HAO_CREDITS].UpdateControl();
+	m_buttons[BUTTON_HAO_REINSTALL].UpdateControl();
+	m_buttons[BUTTON_HAO_DEBUG].UpdateControl();
+
+	m_baseSettingsY = m_buttons[BUTTON_HAO_SETTINGS].getYPos();
+	m_baseCreditsY = m_buttons[BUTTON_HAO_CREDITS].getYPos();
+	m_baseReinstallY = m_buttons[BUTTON_HAO_REINSTALL].getYPos();
+	m_baseDebugY = m_buttons[BUTTON_HAO_DEBUG].getYPos();
+	m_hasCachedBaseButtonY = true;
+}
+
+void UIScene_HelpAndOptionsMenu::setButtonY(int buttonIndex, int yPos)
+{
+	if(buttonIndex < 0 || buttonIndex >= BUTTONS_HAO_MAX)
+	{
+		return;
+	}
+
+	IggyName nameY = registerFastName(L"y");
+	IggyValueSetF64RS(m_buttons[buttonIndex].getIggyValuePath(), nameY, nullptr, static_cast<F64>(yPos));
+}
+
+void UIScene_HelpAndOptionsMenu::refreshDeveloperSettingsButtonState()
+{
+	cacheBaseButtonPositions();
+
+	bool showDeveloperSettings = false;
+#ifndef _FINAL_BUILD
+	const bool isPrimaryPad = (ProfileManager.GetPrimaryPad() == m_iPad);
+	const bool allowDeveloperSettings = (app.GetLocalPlayerCount() <= 1) || isPrimaryPad;
+	showDeveloperSettings = app.DebugSettingsOn() && allowDeveloperSettings;
+#endif
+	m_buttons[BUTTON_HAO_DEBUG].setEnable(showDeveloperSettings);
+	m_buttons[BUTTON_HAO_DEBUG].setVisible(showDeveloperSettings);
+
+	if(!m_hasCachedBaseButtonY)
+	{
+		return;
+	}
+
+	const int rowSpacing = (m_baseCreditsY > m_baseSettingsY) ? (m_baseCreditsY - m_baseSettingsY) : 36;
+
+	if(showDeveloperSettings && !m_buttons[BUTTON_HAO_CREDITS].getHidden())
+	{
+		setButtonY(BUTTON_HAO_DEBUG, m_baseCreditsY);
+		setButtonY(BUTTON_HAO_CREDITS, m_baseCreditsY + rowSpacing);
+
+		if(!m_buttons[BUTTON_HAO_REINSTALL].getHidden())
+		{
+			setButtonY(BUTTON_HAO_REINSTALL, m_baseReinstallY + rowSpacing);
+		}
+	}
+	else
+	{
+		setButtonY(BUTTON_HAO_DEBUG, m_baseDebugY);
+		setButtonY(BUTTON_HAO_CREDITS, m_baseCreditsY);
+
+		if(!m_buttons[BUTTON_HAO_REINSTALL].getHidden())
+		{
+			setButtonY(BUTTON_HAO_REINSTALL, m_baseReinstallY);
+		}
+	}
+}
+
 UIScene_HelpAndOptionsMenu::UIScene_HelpAndOptionsMenu(int iPad, void *initData, UILayer *parentLayer) : UIScene(iPad, parentLayer)
 {
+	m_hasCachedBaseButtonY = false;
+	m_baseSettingsY = 0;
+	m_baseCreditsY = 0;
+	m_baseReinstallY = 0;
+	m_baseDebugY = 0;
+
 	// Setup all the Iggy references we need for this scene
 	initialiseMovie();
 
@@ -16,18 +94,13 @@ UIScene_HelpAndOptionsMenu::UIScene_HelpAndOptionsMenu(int iPad, void *initData,
 	m_buttons[BUTTON_HAO_SETTINGS].init(IDS_SETTINGS,BUTTON_HAO_SETTINGS);
 	m_buttons[BUTTON_HAO_CREDITS].init(IDS_CREDITS,BUTTON_HAO_CREDITS);
 	//m_buttons[BUTTON_HAO_REINSTALL].init(app.GetString(IDS_REINSTALL_CONTENT),BUTTON_HAO_REINSTALL);
-	m_buttons[BUTTON_HAO_DEBUG].init(IDS_DEBUG_SETTINGS,BUTTON_HAO_DEBUG);
+	m_buttons[BUTTON_HAO_DEBUG].init(L"Developer Settings",BUTTON_HAO_DEBUG);
+	cacheBaseButtonPositions();
 
 	/* 4J-TomK - we should never remove a control before the other buttons controls are initialised!
 	(because vita touchboxes are rebuilt on remove since the remaining positions might change) */
 	// We don't have a reinstall content, so remove the button
 	removeControl( &m_buttons[BUTTON_HAO_REINSTALL], false );
-
-#ifndef _DEBUG
-	removeControl( &m_buttons[BUTTON_HAO_DEBUG], false);
-#else
-	if(!app.DebugSettingsOn()) removeControl( &m_buttons[BUTTON_HAO_DEBUG], false);
-#endif
 
 #ifdef _XBOX_ONE
 	// 4J-PB - in order to buy the skin packs, we need the signed offer ids for them, which we get in the availability info
@@ -72,6 +145,8 @@ UIScene_HelpAndOptionsMenu::UIScene_HelpAndOptionsMenu(int iPad, void *initData,
 	{
 		removeControl( &m_buttons[BUTTON_HAO_CHANGESKIN], false);
 	}
+
+	refreshDeveloperSettingsButtonState();
 
 	// 4J-TomK Moved horizontal resize check to the end to prevent horizontal scaling for buttons that might get removed anyways (debug options for example)
 	doHorizontalResizeCheck();
@@ -121,11 +196,7 @@ void UIScene_HelpAndOptionsMenu::updateComponents()
 
 void UIScene_HelpAndOptionsMenu::handleReload()
 {
-#ifndef _DEBUG // def _FINAL_BUILD // disable debug settings in release builds
-	removeControl( &m_buttons[BUTTON_HAO_DEBUG], false);
-#else
-	if(!app.DebugSettingsOn()) removeControl( &m_buttons[BUTTON_HAO_DEBUG], false);
-#endif
+	refreshDeveloperSettingsButtonState();
 
 	// 4J-PB - do not need a storage device to see this menu - just need one when you choose to re-install them
 	bool bNotInGame=(Minecraft::GetInstance()->level==nullptr);
@@ -171,7 +242,15 @@ void UIScene_HelpAndOptionsMenu::handleReload()
 		removeControl( &m_buttons[BUTTON_HAO_CHANGESKIN], false);
 	}
 
+	refreshDeveloperSettingsButtonState();
+
 	doHorizontalResizeCheck();
+}
+
+void UIScene_HelpAndOptionsMenu::handleGainFocus(bool navBack)
+{
+	UIScene::handleGainFocus(navBack);
+	refreshDeveloperSettingsButtonState();
 }
 
 void UIScene_HelpAndOptionsMenu::handleInput(int iPad, int key, bool repeat, bool pressed, bool released, bool &handled)

@@ -6,6 +6,21 @@
 #include <assert.h>
 #include "../XUI/XUI_HelpAndOptions.h"
 
+void CScene_HelpAndOptions::RefreshDeveloperSettingsButtonState()
+{
+	bool showDeveloperSettings = false;
+
+#ifndef _FINAL_BUILD
+	const bool isPrimaryPad = (ProfileManager.GetPrimaryPad() == m_iPad);
+	const bool allowDebugForPad = (app.GetLocalPlayerCount() <= 1) || isPrimaryPad;
+	showDeveloperSettings = app.DebugSettingsOn() && allowDebugForPad;
+#endif
+
+	m_Buttons[BUTTON_HAO_DEBUG].SetEnable(showDeveloperSettings ? TRUE : FALSE);
+	m_Buttons[BUTTON_HAO_DEBUG].SetShow(showDeveloperSettings ? TRUE : FALSE);
+	m_Buttons[BUTTON_HAO_DEBUG].EnableInput(showDeveloperSettings ? TRUE : FALSE);
+}
+
 
 //----------------------------------------------------------------------------------
 // Performs initialization tasks - retrieves controls.
@@ -22,26 +37,12 @@ HRESULT CScene_HelpAndOptions::OnInit( XUIMessageInit* pInitData, BOOL& bHandled
 	XuiControlSetText(m_Buttons[BUTTON_HAO_SETTINGS],app.GetString(IDS_SETTINGS));
 	XuiControlSetText(m_Buttons[BUTTON_HAO_CREDITS],app.GetString(IDS_CREDITS));
 	XuiControlSetText(m_Buttons[BUTTON_HAO_REINSTALL],app.GetString(IDS_REINSTALL_CONTENT));
-	XuiControlSetText(m_Buttons[BUTTON_HAO_DEBUG],app.GetString(IDS_DEBUG_SETTINGS));
+	XuiControlSetText(m_Buttons[BUTTON_HAO_DEBUG],L"Developer Settings");
 
 	//if(app.GetTMSDLCInfoRead())
 	{
 		m_Timer.SetShow(FALSE);
 		m_bIgnoreInput=false;
-
-	#ifndef _FINAL_BUILD
-		if(!app.DebugSettingsOn())
-		{
-			m_Buttons[BUTTON_HAO_DEBUG].SetEnable(FALSE);
-			m_Buttons[BUTTON_HAO_DEBUG].SetShow(FALSE);
-		}
-		else
-		{
-			m_Buttons[BUTTON_HAO_DEBUG].SetEnable(TRUE);
-			m_Buttons[BUTTON_HAO_DEBUG].SetShow(TRUE);
-
-		}
-	#endif
 
 		// 4J-PB - do not need a storage device to see this menu - just need one when you choose to re-install them
 
@@ -73,12 +74,6 @@ HRESULT CScene_HelpAndOptions::OnInit( XUIMessageInit* pInitData, BOOL& bHandled
 
 			app.AdjustSplitscreenScene(m_hObj,&m_OriginalPosition,m_iPad,false);
 			CXuiSceneBase::ShowLogo( m_iPad, FALSE );
-
-			if(ProfileManager.GetPrimaryPad()!=m_iPad)
-			{
-				m_Buttons[BUTTON_HAO_DEBUG].SetEnable(FALSE);
-				m_Buttons[BUTTON_HAO_DEBUG].SetShow(FALSE);
-			}
 		}
 		else
 		{
@@ -91,6 +86,8 @@ HRESULT CScene_HelpAndOptions::OnInit( XUIMessageInit* pInitData, BOOL& bHandled
 				CXuiSceneBase::ShowLogo( m_iPad, TRUE );
 			}
 		}
+
+		RefreshDeveloperSettingsButtonState();
 		// Display the tooltips
 
 		// if we're not in the game, we need to use basescene 0 
@@ -345,6 +342,7 @@ HRESULT CScene_HelpAndOptions::OnKeyDown(XUIMessageInput* pInputData, BOOL& rfHa
 HRESULT CScene_HelpAndOptions::OnNavReturn(HXUIOBJ hObj,BOOL& rfHandled)
 {
 	bool bNotInGame=(Minecraft::GetInstance()->level==nullptr);
+	RefreshDeveloperSettingsButtonState();
 
 	if(bNotInGame)
 	{

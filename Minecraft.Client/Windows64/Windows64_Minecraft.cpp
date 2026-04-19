@@ -481,6 +481,9 @@ IDXGISwapChain*         g_pSwapChain = nullptr;
 bool                    g_bVSync = false;
 static bool             g_bPendingExclusiveFullscreen = false;
 static bool             g_bPendingExclusiveFullscreenValue = false;
+static bool             g_bPendingFullscreenResolutionChange = false;
+static int              g_iFullscreenResolutionIndex = 255; // 255 = native monitor resolution
+static LARGE_INTEGER    g_qpcFrequency = {};
 
 // Captures the D3D11 back buffer and saves it as a PNG screenshot.
 // Returns true on success and sets outFilename to the saved filename.
@@ -563,6 +566,179 @@ static const float kClearColorBlack[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 // skip its destroy-and-recreate path, which would break exclusive ownership.
 static bool g_bDxgiExclusiveFullscreen = false;
 
+static void ResolveFullscreenResolution(int index, int nativeW, int nativeH, int& outW, int& outH);
+static bool ResizeD3D(int newW, int newH); // forward declaration
+
+static void ApplyWindowedResolutionFromSetting()
+{
+	if (!g_hWnd)
+		return;
+
+	if (IsZoomed(g_hWnd))
+	{
+		ShowWindow(g_hWnd, SW_RESTORE);
+	}
+
+	RECT windowRect = {};
+	if (!GetWindowRect(g_hWnd, &windowRect))
+		return;
+
+	HMONITOR monitor = MonitorFromWindow(g_hWnd, MONITOR_DEFAULTTONEAREST);
+	MONITORINFO monitorInfo = {};
+	monitorInfo.cbSize = sizeof(monitorInfo);
+
+	int nativeW = windowRect.right - windowRect.left;
+	int nativeH = windowRect.bottom - windowRect.top;
+	if (GetMonitorInfo(monitor, &monitorInfo))
+	{
+		nativeW = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
+		nativeH = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+	}
+
+	int targetClientW = nativeW;
+	int targetClientH = nativeH;
+	ResolveFullscreenResolution(g_iFullscreenResolutionIndex, nativeW, nativeH, targetClientW, targetClientH);
+
+	const DWORD style = static_cast<DWORD>(GetWindowLong(g_hWnd, GWL_STYLE));
+	const DWORD exStyle = static_cast<DWORD>(GetWindowLong(g_hWnd, GWL_EXSTYLE));
+
+	RECT desiredWindowRect = { 0, 0, targetClientW, targetClientH };
+	AdjustWindowRectEx(&desiredWindowRect, style, FALSE, exStyle);
+
+	const int targetWindowW = desiredWindowRect.right - desiredWindowRect.left;
+	const int targetWindowH = desiredWindowRect.bottom - desiredWindowRect.top;
+	const int currentWindowW = windowRect.right - windowRect.left;
+	const int currentWindowH = windowRect.bottom - windowRect.top;
+
+	int targetWindowX = windowRect.left;
+	int targetWindowY = windowRect.top;
+	if (GetMonitorInfo(monitor, &monitorInfo))
+	{
+		const int monitorW = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
+		const int monitorH = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+		targetWindowX = monitorInfo.rcMonitor.left + (monitorW - targetWindowW) / 2;
+		targetWindowY = monitorInfo.rcMonitor.top + (monitorH - targetWindowH) / 2;
+	}
+
+	if (targetWindowW == currentWindowW && targetWindowH == currentWindowH &&
+		targetWindowX == windowRect.left && targetWindowY == windowRect.top)
+	{
+		if (g_bResizeReady && !g_bDxgiExclusiveFullscreen)
+		{
+			ResizeD3D(targetClientW, targetClientH);
+		}
+		return;
+	}
+
+	SetWindowPos(g_hWnd, nullptr, targetWindowX, targetWindowY, targetWindowW, targetWindowH,
+		SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+
+	if (g_bResizeReady && !g_bDxgiExclusiveFullscreen)
+	{
+		RECT clientRect = {};
+		if (GetClientRect(g_hWnd, &clientRect))
+		{
+			const int clientW = clientRect.right - clientRect.left;
+			const int clientH = clientRect.bottom - clientRect.top;
+			if (clientW != targetClientW || clientH != targetClientH)
+			{
+				ResizeD3D(targetClientW, targetClientH);
+			}
+		}
+	}
+}
+
+static int ClampFullscreenResolutionIndex(int index)
+{
+	if (index < 0 || index > 3)
+		return 255;
+	return index;
+}
+
+static int MaxFramerateSettingToFpsCap(int setting)
+{
+	int maxFps = 200;
+	if (setting == 1) maxFps = 120;
+	if (setting == 2) maxFps = 60;
+	if (setting == 3) maxFps = 35;
+	if (setting == 4) maxFps = 30;
+	return maxFps;
+}
+
+static void EnforceFramerateLimit(const LARGE_INTEGER& frameStartQpc, bool usedVSyncPresent)
+{
+	if (usedVSyncPresent)
+		return;
+
+	if (g_qpcFrequency.QuadPart <= 0)
+		return;
+
+	const int primaryPad = ProfileManager.GetPrimaryPad();
+	const int maxFramerateSetting = app.GetGameSettings(primaryPad, eGameSetting_MaxFramerate);
+	if (maxFramerateSetting == 0)
+		return;
+
+	const int maxFps = MaxFramerateSettingToFpsCap(maxFramerateSetting);
+	if (maxFps <= 0)
+		return;
+
+	const double targetSeconds = 1.0 / static_cast<double>(maxFps);
+
+	LARGE_INTEGER nowQpc = {};
+	QueryPerformanceCounter(&nowQpc);
+	double elapsedSeconds = static_cast<double>(nowQpc.QuadPart - frameStartQpc.QuadPart) /
+		static_cast<double>(g_qpcFrequency.QuadPart);
+
+	if (elapsedSeconds >= targetSeconds)
+		return;
+
+	double remainingSeconds = targetSeconds - elapsedSeconds;
+	if (remainingSeconds > 0.012)
+	{
+		const DWORD sleepMs = static_cast<DWORD>((remainingSeconds - 0.004) * 1000.0);
+		if (sleepMs > 0)
+		{
+			Sleep(sleepMs);
+		}
+	}
+
+	for (;;)
+	{
+		QueryPerformanceCounter(&nowQpc);
+		elapsedSeconds = static_cast<double>(nowQpc.QuadPart - frameStartQpc.QuadPart) /
+			static_cast<double>(g_qpcFrequency.QuadPart);
+		if (elapsedSeconds >= targetSeconds)
+			break;
+	}
+}
+
+static void ResolveFullscreenResolution(int index, int nativeW, int nativeH, int& outW, int& outH)
+{
+	switch (ClampFullscreenResolutionIndex(index))
+	{
+	case 0:
+		outW = 1920;
+		outH = 1080;
+		break;
+	case 1:
+		outW = 1600;
+		outH = 900;
+		break;
+	case 2:
+		outW = 1280;
+		outH = 720;
+		break;
+	case 3:
+		outW = 1024;
+		outH = 768;
+		break;
+	default:
+		outW = nativeW;
+		outH = nativeH;
+		break;
+	}
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -574,7 +750,6 @@ static bool g_bDxgiExclusiveFullscreen = false;
 //  WM_SIZE		- handle resizing logic to support Any Aspect Ratio
 //
 //
-static bool ResizeD3D(int newW, int newH); // forward declaration
 static bool g_bInSizeMove = false;     // true while the user is dragging the window border
 static int  g_pendingResizeW = 0;      // deferred resize dimensions
 static int  g_pendingResizeH = 0;
@@ -1337,6 +1512,12 @@ void SetExclusiveFullscreen(bool enabled)
 	g_bPendingExclusiveFullscreenValue = enabled;
 }
 
+void SetFullscreenResolutionIndex(int index)
+{
+	g_iFullscreenResolutionIndex = ClampFullscreenResolutionIndex(index);
+	g_bPendingFullscreenResolutionChange = true;
+}
+
 // Enter or leave true DXGI exclusive fullscreen. With our bitblt swap chain,
 // Present(SyncInterval=0) in exclusive mode produces real screen tearing via
 // direct scanout (DWM is out of the pipeline). Flip mode with ALLOW_TEARING
@@ -1363,6 +1544,9 @@ static void ApplyExclusiveFullscreen(bool enabled)
 		{
 			int monW = mi.rcMonitor.right - mi.rcMonitor.left;
 			int monH = mi.rcMonitor.bottom - mi.rcMonitor.top;
+			int targetW = monW;
+			int targetH = monH;
+			ResolveFullscreenResolution(g_iFullscreenResolutionIndex, monW, monH, targetW, targetH);
 			SetWindowLong(g_hWnd, GWL_STYLE, (styleBefore & ~WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			SetWindowPos(g_hWnd, HWND_TOP,
 				mi.rcMonitor.left, mi.rcMonitor.top, monW, monH,
@@ -1372,8 +1556,8 @@ static void ApplyExclusiveFullscreen(bool enabled)
 			// no scaling. Microsoft's pattern is ResizeTarget then
 			// SetFullscreenState then ResizeTarget again (see below).
 			DXGI_MODE_DESC targetMode = {};
-			targetMode.Width = monW;
-			targetMode.Height = monH;
+			targetMode.Width = targetW;
+			targetMode.Height = targetH;
 			targetMode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			targetMode.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 			targetMode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
@@ -1407,9 +1591,15 @@ static void ApplyExclusiveFullscreen(bool enabled)
 		mi2.cbSize = sizeof(mi2);
 		if (GetMonitorInfo(hMon2, &mi2))
 		{
+			const int monW2 = mi2.rcMonitor.right - mi2.rcMonitor.left;
+			const int monH2 = mi2.rcMonitor.bottom - mi2.rcMonitor.top;
+			int targetW2 = monW2;
+			int targetH2 = monH2;
+			ResolveFullscreenResolution(g_iFullscreenResolutionIndex, monW2, monH2, targetW2, targetH2);
+
 			DXGI_MODE_DESC targetMode2 = {};
-			targetMode2.Width = mi2.rcMonitor.right - mi2.rcMonitor.left;
-			targetMode2.Height = mi2.rcMonitor.bottom - mi2.rcMonitor.top;
+			targetMode2.Width = targetW2;
+			targetMode2.Height = targetH2;
 			targetMode2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			targetMode2.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 			targetMode2.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
@@ -1732,6 +1922,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		return 1;
 	}
 	g_bResizeReady = true;
+	QueryPerformanceFrequency(&g_qpcFrequency);
 
 	//app.TemporaryCreateGameStart();
 
@@ -1761,6 +1952,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	MSG msg = {0};
 	while( WM_QUIT != msg.message && !app.m_bShutdown)
 	{
+		LARGE_INTEGER frameStartQpc = {};
+		QueryPerformanceCounter(&frameStartQpc);
+
 		g_KBMInput.Tick();
 
 		while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
@@ -1975,17 +2169,23 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		// simple menu scene drives the GPU to thousands of FPS and causes coil
 		// whine on many cards.
 		const bool forceVSyncForMenu = !app.GetGameStarted();
+		bool usedVSyncPresent = true;
 		if (!g_bVSync && !forceVSyncForMenu && g_pSwapChain)
 		{
+			usedVSyncPresent = false;
 			HRESULT hrPresent = g_pSwapChain->Present(0, 0);
 			// If the direct Present fails (e.g. during fullscreen transition),
 			// fall back to the library's VSync'd Present for this frame.
 			if (FAILED(hrPresent))
+			{
 				RenderManager.Present();
+				usedVSyncPresent = true;
+			}
 		}
 		else
 		{
 			RenderManager.Present();
+			usedVSyncPresent = true;
 		}
 
 		ui.CheckMenuDisplayed();
@@ -2100,6 +2300,28 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			ApplyExclusiveFullscreen(g_bPendingExclusiveFullscreenValue);
 		}
 
+		if (g_bPendingFullscreenResolutionChange)
+		{
+			const int primaryPad = ProfileManager.GetPrimaryPad();
+			const bool menuDisplayed = ui.GetMenuDisplayed(primaryPad);
+			const bool draggingResolutionSlider =
+				menuDisplayed && g_KBMInput.IsKBMActive() &&
+				g_KBMInput.IsMouseButtonDown(KeyboardMouseInput::MOUSE_LEFT);
+
+			if (!draggingResolutionSlider)
+			{
+				g_bPendingFullscreenResolutionChange = false;
+				if (g_bDxgiExclusiveFullscreen)
+				{
+					ApplyExclusiveFullscreen(true);
+				}
+				else
+				{
+					ApplyWindowedResolutionFromSetting();
+				}
+			}
+		}
+
 		// TAB opens game info menu. - Vvis :3 - Updated by detectiveren
 		if (g_KBMInput.IsKeyPressed(KeyboardMouseInput::KEY_HOST_SETTINGS) && !ui.GetMenuDisplayed(0))
 		{
@@ -2206,6 +2428,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				bTrialTimerDisplayed=false;
 			}
 		}
+
+		EnforceFramerateLimit(frameStartQpc, usedVSyncPresent);
 
 		// Fix for #7318 - Title crashes after short soak in the leaderboards menu
 		// A memory leak was caused because the icon renderer kept creating new Vec3's because the pool wasn't reset

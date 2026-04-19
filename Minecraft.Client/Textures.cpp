@@ -21,6 +21,7 @@
 #include "TextureAtlas.h"
 
 bool Textures::MIPMAP = true;
+bool Textures::SMOOTH_FILTER = false;
 C4JRender::eTextureFormat Textures::TEXTURE_FORMAT = C4JRender::TEXTURE_FORMAT_RxGyBzAw;
 
 int Textures::preLoadedIdx[TN_COUNT];
@@ -624,6 +625,7 @@ int Textures::loadTexture(TEXTURE_NAME texId, const wstring& resourceName)
     }
 
 	wstring pathName = resourceName;
+	const bool previousMipmap = MIPMAP;
 
 	// 4J - added special cases to avoid mipmapping on clouds & shadows
 	if( (resourceName == L"environment/clouds.png") ||
@@ -665,7 +667,7 @@ int Textures::loadTexture(TEXTURE_NAME texId, const wstring& resourceName)
 	}
 
 	idMap[resourceName] = id;
-	MIPMAP = true; // 4J added
+	MIPMAP = previousMipmap;
 	TEXTURE_FORMAT = C4JRender::TEXTURE_FORMAT_RxGyBzAw;
 	return id;
 		/*
@@ -683,11 +685,12 @@ int Textures::loadTexture(TEXTURE_NAME texId, const wstring& resourceName)
 int Textures::getTexture(BufferedImage *img, C4JRender::eTextureFormat format, bool mipmap)
 {
     int id = MemoryTracker::genTextures();
+	const bool previousMipmap = MIPMAP;
 	TEXTURE_FORMAT = format;
 	MIPMAP = mipmap;
     loadTexture(img, id);
 	TEXTURE_FORMAT = C4JRender::TEXTURE_FORMAT_RxGyBzAw;
-	MIPMAP = true;
+	MIPMAP = previousMipmap;
     loadedImages[id] = img;
     return id;
 }
@@ -706,10 +709,15 @@ void Textures::loadTexture(BufferedImage *img, int id, bool blur, bool clamp)
 	MemSect(33);
     glBindTexture(GL_TEXTURE_2D, id);
 
+	const int w = img->getWidth();
+	const int h = img->getHeight();
+
+	const bool useSmoothFilter = SMOOTH_FILTER && (w >= 256 || h >= 256);
+
     if (MIPMAP)
 	{
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, useSmoothFilter ? GL_LINEAR : GL_NEAREST);
         /*
             * glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, 0);
             * glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, 4);
@@ -719,8 +727,8 @@ void Textures::loadTexture(BufferedImage *img, int id, bool blur, bool clamp)
     }
 	else
 	{
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useSmoothFilter ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, useSmoothFilter ? GL_LINEAR : GL_NEAREST);
     }
     if (blur)
 	{
@@ -738,9 +746,6 @@ void Textures::loadTexture(BufferedImage *img, int id, bool blur, bool clamp)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
-
-    int w = img->getWidth();
-    int h = img->getHeight();
 
     intArray rawPixels(w*h);
     img->getRGB(0, 0, w, h, rawPixels, 0, w);
@@ -1144,6 +1149,7 @@ int Textures::loadMemTexture(const wstring& url, const wstring& backup)
 	{
 		if (texture->loadedImage != nullptr && !texture->isLoaded)
 		{
+			const bool previousMipmap = MIPMAP;
 			// 4J - Disable mipmapping in general for skins & capes. Have seen problems with edge-on polys for some eg mumbo jumbo
 			if( ( url.substr(0,7) == L"dlcskin" ) ||
 				( url.substr(0,7) == L"dlccape" ) )
@@ -1160,7 +1166,7 @@ int Textures::loadMemTexture(const wstring& url, const wstring& backup)
 				loadTexture(texture->loadedImage, texture->id);
 			}
 			texture->isLoaded = true;
-			MIPMAP = true;
+			MIPMAP = previousMipmap;
 		}
 	}
 	if (texture == nullptr || texture->id < 0)
@@ -1189,6 +1195,7 @@ int Textures::loadMemTexture(const wstring& url, int backup)
 		texture->ticksSinceLastUse = 0;
 		if (texture->loadedImage != nullptr && !texture->isLoaded)
 		{
+			const bool previousMipmap = MIPMAP;
 			// 4J - Disable mipmapping in general for skins & capes. Have seen problems with edge-on polys for some eg mumbo jumbo
 			if( ( url.substr(0,7) == L"dlcskin" ) ||
 				( url.substr(0,7) == L"dlccape" ) )
@@ -1204,7 +1211,7 @@ int Textures::loadMemTexture(const wstring& url, int backup)
 				loadTexture(texture->loadedImage, texture->id);
 			}
 			texture->isLoaded = true;
-			MIPMAP = true;
+			MIPMAP = previousMipmap;
 		}
 	}
 	if (texture == nullptr || texture->id < 0)
@@ -1231,6 +1238,7 @@ int Textures::getHeight(const wstring& url, int backup)
 	{
 		if (texture->loadedImage != nullptr && !texture->isLoaded)
 		{
+			const bool previousMipmap = MIPMAP;
 			// 4J - Disable mipmapping in general for skins & capes. Have seen problems with edge-on polys for some eg mumbo jumbo
 			if( ( url.substr(0,7) == L"dlcskin" ) ||
 				( url.substr(0,7) == L"dlccape" ) )
@@ -1247,7 +1255,7 @@ int Textures::getHeight(const wstring& url, int backup)
 				loadTexture(texture->loadedImage, texture->id);
 			}
 			texture->isLoaded = true;
-			MIPMAP = true;
+			MIPMAP = previousMipmap;
 		}
 	}
 	if (texture == nullptr || texture->id < 0)

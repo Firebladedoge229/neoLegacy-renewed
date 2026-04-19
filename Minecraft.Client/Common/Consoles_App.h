@@ -322,11 +322,10 @@ public:
 	static int MustSignInFullVersionPurchaseReturnedExitTrial(void *pParam,int iPad,C4JStorage::EMessageResult result);
 #endif
 
-#ifdef _DEBUG_MENUS_ENABLED
 	bool			DebugSettingsOn()														{ return m_bDebugOptions;}
+#ifdef _DEBUG_MENUS_ENABLED
 	bool			DebugArtToolsOn();
 #else
-	bool			DebugSettingsOn()														{ return false;}
 	bool			DebugArtToolsOn()														{ return false;}
 #endif
 	void			SetDebugSequence(const char *pchSeq);

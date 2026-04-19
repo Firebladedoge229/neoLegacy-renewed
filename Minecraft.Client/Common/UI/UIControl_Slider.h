@@ -28,6 +28,7 @@ public:
 	void SetSliderTouchPos(float fTouchPos);
 	void SetSliderValue(int value);
 	virtual void setAllPossibleLabels(int labelCount, wchar_t labels[][256]);
+	int getCurrentValue() const { return m_current; }
 
 	S32 GetRealWidth();
 	virtual void ReInit();

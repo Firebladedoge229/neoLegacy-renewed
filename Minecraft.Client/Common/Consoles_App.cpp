@@ -141,16 +141,7 @@ CMinecraftApp::CMinecraftApp()
 	m_bChangingSessionType = false;
 	m_bReallyChangingSessionType = false;
 
-#ifdef _DEBUG_MENUS_ENABLED
-
-#ifdef _CONTENT_PACKAGE
-	m_bDebugOptions=false; // make them off by default in a content package build
-#else
-	m_bDebugOptions=true;
-#endif
-#else
 	m_bDebugOptions=false;
-#endif
 
 	//ZeroMemory(m_PreviewBuffer,sizeof(XSOCIAL_PREVIEWIMAGE)*XUSER_MAX_COUNT);
 
@@ -968,6 +959,12 @@ int CMinecraftApp::SetDefaultOptions(C_4JProfile::PROFILESETTINGS *pSettings,con
 	SetGameSettings(iPad,eGameSetting_RenderDistance,16);
 	SetGameSettings(iPad,eGameSetting_Gamma,50);
 	SetGameSettings(iPad,eGameSetting_FOV,0);
+	SetGameSettings(iPad,eGameSetting_FullscreenResolution,255);
+	SetGameSettings(iPad,eGameSetting_MaxFramerate,0);
+	SetGameSettings(iPad,eGameSetting_Mipmapping,1);
+	SetGameSettings(iPad,eGameSetting_Antialiasing,0);
+	SetGameSettings(iPad,eGameSetting_DeveloperSettings,0);
+	SetGameSettings(iPad,eGameSetting_PerformanceMode,0);
 
 	// 4J-PB - Don't reset the difficult level if we're in-game
 	if(Minecraft::GetInstance()->level==nullptr)
@@ -1492,6 +1489,13 @@ void CMinecraftApp::ApplyGameSettingsChanged(int iPad)
 
 	ActionGameSettings(iPad,eGameSetting_PS3_EULA_Read);
 	ActionGameSettings(iPad,eGameSetting_VSync);
+	ActionGameSettings(iPad,eGameSetting_ExclusiveFullscreen);
+	ActionGameSettings(iPad,eGameSetting_FullscreenResolution);
+	ActionGameSettings(iPad,eGameSetting_MaxFramerate);
+	ActionGameSettings(iPad,eGameSetting_Mipmapping);
+	ActionGameSettings(iPad,eGameSetting_Antialiasing);
+	ActionGameSettings(iPad,eGameSetting_DeveloperSettings);
+	ActionGameSettings(iPad,eGameSetting_PerformanceMode);
 
 }
 
@@ -1742,6 +1746,47 @@ void CMinecraftApp::ActionGameSettings(int iPad,eGameSetting eVal)
 			SetExclusiveFullscreen(GetGameSettings(iPad, eGameSetting_ExclusiveFullscreen) != 0);
 		}
 #endif
+		break;
+	case eGameSetting_FullscreenResolution:
+#ifdef _WINDOWS64
+		{
+			extern void SetFullscreenResolutionIndex(int index);
+			SetFullscreenResolutionIndex(GetGameSettings(iPad, eGameSetting_FullscreenResolution));
+		}
+#endif
+		break;
+	case eGameSetting_MaxFramerate:
+		// Read directly by the renderer each frame.
+		break;
+	case eGameSetting_Mipmapping:
+		if(iPad==ProfileManager.GetPrimaryPad())
+		{
+			const bool enableMipmapping = (GetGameSettings(iPad, eGameSetting_Mipmapping) != 0);
+			Textures::MIPMAP = enableMipmapping;
+			if(pMinecraft->textures != nullptr)
+			{
+				pMinecraft->textures->reloadAll();
+			}
+		}
+		break;
+	case eGameSetting_Antialiasing:
+		if(iPad==ProfileManager.GetPrimaryPad())
+		{
+			Textures::SMOOTH_FILTER = (GetGameSettings(iPad, eGameSetting_Antialiasing) != 0);
+			if(pMinecraft->textures != nullptr)
+			{
+				pMinecraft->textures->reloadAll();
+			}
+		}
+		break;
+	case eGameSetting_DeveloperSettings:
+		if(iPad==ProfileManager.GetPrimaryPad())
+		{
+			m_bDebugOptions = (GetGameSettings(iPad, eGameSetting_DeveloperSettings) != 0);
+		}
+		break;
+	case eGameSetting_PerformanceMode:
+		// Reserved for future runtime quality profile application.
 		break;
 	}
 }
@@ -2486,6 +2531,86 @@ void CMinecraftApp::SetGameSettings(int iPad,eGameSetting eVal,unsigned char ucV
 		}
 		break;
 
+	case eGameSetting_FullscreenResolution:
+		if(GameSettingsA[iPad]->ucFullscreenResolution!=ucVal)
+		{
+			GameSettingsA[iPad]->ucFullscreenResolution=ucVal;
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
+	case eGameSetting_MaxFramerate:
+		if(GameSettingsA[iPad]->ucMaxFramerate!=ucVal)
+		{
+			GameSettingsA[iPad]->ucMaxFramerate=ucVal;
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
+	case eGameSetting_Mipmapping:
+		{
+			const bool disableMipmapping = (ucVal == 0);
+			const bool currentlyDisabled = ((GameSettingsA[iPad]->uiBitmaskValues & GAMESETTING_DISABLE_MIPMAPPING) != 0);
+			if(currentlyDisabled != disableMipmapping)
+			{
+				if(disableMipmapping)
+				{
+					GameSettingsA[iPad]->uiBitmaskValues |= GAMESETTING_DISABLE_MIPMAPPING;
+				}
+				else
+				{
+					GameSettingsA[iPad]->uiBitmaskValues &= ~GAMESETTING_DISABLE_MIPMAPPING;
+				}
+				ActionGameSettings(iPad,eVal);
+				GameSettingsA[iPad]->bSettingsChanged=true;
+			}
+		}
+		break;
+
+	case eGameSetting_Antialiasing:
+		if((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_ANTIALIASING)!=((ucVal&0x03)<<27))
+		{
+			GameSettingsA[iPad]->uiBitmaskValues&=~GAMESETTING_ANTIALIASING;
+			GameSettingsA[iPad]->uiBitmaskValues|=(ucVal&0x03)<<27;
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
+	case eGameSetting_DeveloperSettings:
+		if((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_DEVELOPERSETTINGS)!=((ucVal&0x01)<<29))
+		{
+			if(ucVal==1)
+			{
+				GameSettingsA[iPad]->uiBitmaskValues|=GAMESETTING_DEVELOPERSETTINGS;
+			}
+			else
+			{
+				GameSettingsA[iPad]->uiBitmaskValues&=~GAMESETTING_DEVELOPERSETTINGS;
+			}
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
+	case eGameSetting_PerformanceMode:
+		if((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_PERFORMANCEMODE)!=((ucVal&0x01)<<30))
+		{
+			if(ucVal==1)
+			{
+				GameSettingsA[iPad]->uiBitmaskValues|=GAMESETTING_PERFORMANCEMODE;
+			}
+			else
+			{
+				GameSettingsA[iPad]->uiBitmaskValues&=~GAMESETTING_PERFORMANCEMODE;
+			}
+			ActionGameSettings(iPad,eVal);
+			GameSettingsA[iPad]->bSettingsChanged=true;
+		}
+		break;
+
 	}
 }
 
@@ -2627,6 +2752,24 @@ unsigned char CMinecraftApp::GetGameSettings(int iPad,eGameSetting eVal)
 	case eGameSetting_ExclusiveFullscreen:
 		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_EXCLUSIVEFULLSCREEN)>>25;
 
+	case eGameSetting_FullscreenResolution:
+		return GameSettingsA[iPad]->ucFullscreenResolution;
+
+	case eGameSetting_MaxFramerate:
+		return GameSettingsA[iPad]->ucMaxFramerate;
+
+	case eGameSetting_Mipmapping:
+		return ((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_DISABLE_MIPMAPPING)==0)?1:0;
+
+	case eGameSetting_Antialiasing:
+		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_ANTIALIASING)>>27;
+
+	case eGameSetting_DeveloperSettings:
+		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_DEVELOPERSETTINGS)>>29;
+
+	case eGameSetting_PerformanceMode:
+		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_PERFORMANCEMODE)>>30;
+
 	}
 	return 0;
 }
@@ -2674,27 +2817,6 @@ void CMinecraftApp::ClearGameSettingsChangedFlag(int iPad)
 {
 	GameSettingsA[iPad]->bSettingsChanged=false;
 }
-
-///////////////////////////
-//
-// Remove the debug settings in the release build
-//
-////////////////////////////
-#ifndef _DEBUG
-unsigned int CMinecraftApp::GetGameSettingsDebugMask(int iPad,bool bOverridePlayer) //bOverridePlayer is to force the send for the server to get the read options
-{
-	return 0;
-}
-
-void CMinecraftApp::SetGameSettingsDebugMask(int iPad, unsigned int uiVal)
-{
-}
-
-void CMinecraftApp::ActionDebugMask(int iPad,bool bSetAllClear)
-{
-}
-
-#else
 
 unsigned int CMinecraftApp::GetGameSettingsDebugMask(int iPad,bool bOverridePlayer) //bOverridePlayer is to force the send for the server to get the read options
 {
@@ -2867,7 +2989,6 @@ void CMinecraftApp::ActionDebugMask(int iPad,bool bSetAllClear)
 		}
 	}
 }
-#endif
 
 int CMinecraftApp::DisplaySavingMessage(void *pParam, C4JStorage::ESavingMessage eVal, int iPad)
 {

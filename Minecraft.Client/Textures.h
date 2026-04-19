@@ -271,6 +271,7 @@ class Textures
 {
 public:
 	static bool MIPMAP;
+	static bool SMOOTH_FILTER;
 	static C4JRender::eTextureFormat TEXTURE_FORMAT;
 
 private:

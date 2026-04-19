@@ -163,24 +163,6 @@ void Input::tick(LocalPlayer *player)
 	float turnX = tx * abs(tx) * turnSpeed;
 	float turnY = ty * abs(ty) * turnSpeed;
 
-#ifdef _WINDOWS64
-	if (iPad == 0 && g_KBMInput.IsMouseGrabbed() && g_KBMInput.IsKBMActive())
-	{
-		float mouseSensitivity = static_cast<float>(app.GetGameSettings(iPad, eGameSetting_Sensitivity_InGame)) / 100.0f;
-		float mouseLookScale = 5.0f;
-		float mx = g_KBMInput.GetLookX(mouseSensitivity * mouseLookScale);
-		float my = g_KBMInput.GetLookY(mouseSensitivity * mouseLookScale);
-
-		if ( app.GetGameSettings(iPad,eGameSetting_ControlInvertLook) )
-		{
-			my = -my;
-		}
-
-		turnX += mx;
-		turnY += my;
-	}
-#endif
-
 	player->interpolateTurn(turnX, turnY);
 
     //jumping = controller.isButtonPressed(0);
