@@ -1,7 +1,18 @@
 ![banner](.gitea/banner.png)
-# neoLegacy Renewed (Legacy Console Edition)
+# neoLegacy Renewed
 This project aims to backport the newer title updates back to Legacy Console Edition (which is based on TU19).\
-Along with that, this project will also backport some newer java features considered QoL.
+Along with that, this project will also attempt to backport some newer Java Edition features deemed 'QoL'.
+
+### Exclusive Features
+- Modern chest dynamics (placing chests side-by-side, etc)
+
+### In-progress Features:
+- Pick block functionality
+- In-game developer settings 
+
+### Planned Features:
+- Minecraft Store functionality
+- Leaderboard functionality
 
 # Our roadmap:
 ![Roadmap](.gitea/roadmap.png)
@@ -18,6 +29,7 @@ Users can download our [Nightly Build](./releases/latest)! Simply download the `
 
 Huge thanks to the following projects:
 
+- [pieeebot/neoLegacy](https://github.com/pieeebot/neoLegacy) - providing a foundation for this project to continue with
 - [Patoke/LCERenewed](https://github.com/Patoke/LCERenewed) - for some of the patches that required deep decompilation
 - [itsRevela/LCE-Revelations](https://github.com/itsRevela/LCE-Revelations) - for providing a stable project for neoLegacy to continue with
 
