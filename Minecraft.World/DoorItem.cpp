@@ -16,7 +16,7 @@ DoorItem::DoorItem(int id, Material *material, const wstring& doorType) :  Item(
 {
 	this->material = material;
 	this->doorType = doorType;
-	maxStackSize = 1;
+	maxStackSize = 64;
 }
 
 bool DoorItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> player, Level *level, int x, int y, int z, int face, float clickX, float clickY, float clickZ, bool bTestUseOnOnly) 
