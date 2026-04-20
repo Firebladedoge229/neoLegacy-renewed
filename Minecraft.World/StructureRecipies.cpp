@@ -15,6 +15,7 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'#', Tile::sand,
 		L'S');
 
+
 	r->addShapedRecipy(new ItemInstance(Tile::sandStone, 4, SandStoneTile::TYPE_SMOOTHSIDE), //
 		L"ssczg",
 		L"##", //
@@ -31,6 +32,35 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'#', new ItemInstance(Tile::stoneSlabHalf, 1, StoneSlabTile::SAND_SLAB),
 		L'S');
 
+
+	r->addShapedRecipy(new ItemInstance(Tile::red_sandstone), //
+		L"ssczg",
+		L"##", //
+		L"##", //
+
+		L'#',new ItemInstance(Tile::sand, 1, SandTile::RED_SAND),
+		L'S');
+
+	r->addShapedRecipy(new ItemInstance(Tile::red_sandstone, 4, RedSandStoneTile::TYPE_SMOOTHSIDE), //
+		L"ssczg",
+		L"##", //
+		L"##", //
+
+		L'#', new ItemInstance(Tile::red_sandstone),
+		L'S');
+
+
+	r->addShapedRecipy(new ItemInstance(Tile::red_sandstone, 1, RedSandStoneTile::TYPE_HEIROGLYPHS), //
+		L"ssczg",
+		L"#", //
+		L"#", //
+
+		L'#', new ItemInstance(Tile::stoneSlab2Half, 1, StoneSlabTile2::RED_SANDSTONE_SLAB),
+		L'S');
+
+
+	
+
 	r->addShapedRecipy(new ItemInstance(Tile::quartzBlock, 1, QuartzBlockTile::TYPE_CHISELED), //
 		L"ssczg",
 		L"#", //
@@ -46,6 +76,7 @@ void StructureRecipies::addRecipes(Recipes *r)
 
 		L'#', new ItemInstance(Tile::quartzBlock, 1, QuartzBlockTile::TYPE_DEFAULT),
 		L'S');
+	
 	
 
 	// 4J Stu - Changed the order, as the blocks that go with sandstone cause a 3-icon scroll

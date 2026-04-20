@@ -141,5 +141,6 @@
 #include "TallGrass2.h"
 
 #include "PackedIceTile.h"
+#include "StoneSlabTile2.h"
 
 
