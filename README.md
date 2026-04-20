@@ -5,15 +5,16 @@ Along with that, this project will also attempt to backport some newer Java Edit
 
 ### Exclusive Features
 - Pick block functionality
+- Leaderboard functionality
 - In-game developer settings 
 - Expanded graphics customization
 - Modern chest dynamics (placing chests side-by-side, etc)
 
 ### In-progress Features:
-- Leaderboard functionality
+- Minecraft Store functionality
 
 ### Planned Features:
-- Minecraft Store functionality
+- To be determined
 
 # Our roadmap:
 ![Roadmap](.github/roadmap.png)
