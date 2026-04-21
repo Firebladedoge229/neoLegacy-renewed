@@ -34,7 +34,7 @@
 #include "../Minecraft.World/GenericStats.h"
 #include "../Minecraft.World/JavaMath.h"
 
-#include "..\Minecraft.World\ListTag.h"
+#include "../Minecraft.World/ListTag.h"
 // 4J Added
 #include "../Minecraft.World/net.minecraft.world.item.crafting.h"
 #include "Options.h"

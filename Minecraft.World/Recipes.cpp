@@ -169,7 +169,7 @@ Recipes::Recipes()
 		L"W#W", //
 
 		L'#', Item::stick,
-		L'W', new ItemInstance(Tile::wood, 1, TreeTile::DARK_TRUNK),
+		L'W', new ItemInstance(Tile::wood, 1, TreeTile::SPRUCE_TRUNK),
 		L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::jungleFence, 3), //
@@ -411,6 +411,14 @@ Recipes::Recipes()
 
 		L'#', Tile::sandStone,
 		L'S');
+	addShapedRecipy(new ItemInstance(Tile::stairs_red_sandstone, 4), //
+		L"sssctg",
+		L"#  ", //
+		L"## ", //
+		L"###", //
+
+		L'#', Tile::red_sandstone,
+		L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::woodStairsBirch, 4), //
 		L"sssczg",
@@ -554,6 +562,12 @@ Recipes::Recipes()
 		L"###", //
 
 		L'#', Tile::sandStone,
+		L'S');
+	addShapedRecipy(new ItemInstance(Tile::stoneSlab2Half, 6, StoneSlabTile2::RED_SANDSTONE_SLAB), //
+		L"sctg",
+		L"###", //
+
+		L'#', Tile::red_sandstone,
 		L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::STONE_SLAB), //

@@ -6,8 +6,8 @@
 #include "net.minecraft.world.item.h"
 #include "Mth.h"
 #include "ArmorStandItem.h"
-#include "..\Minecraft.World\ArmorStand.h"
-#include "..\Minecraft.World\Entity.h"
+#include "../Minecraft.World/ArmorStand.h"
+#include "../Minecraft.World/Entity.h"
 
 
 ArmorStandItem::ArmorStandItem(int id) : Item(id)

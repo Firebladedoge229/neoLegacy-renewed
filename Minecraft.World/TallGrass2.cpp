@@ -5,7 +5,7 @@
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.h"
 #include "net.minecraft.h"
-#include "..\Minecraft.Client\Minecraft.h"
+#include "../Minecraft.Client/Minecraft.h"
 #include "net.minecraft.stats.h"
 
 

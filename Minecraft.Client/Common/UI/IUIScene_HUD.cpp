@@ -6,7 +6,7 @@
 #include "../../../Minecraft.World/net.minecraft.world.entity.ai.attributes.h"
 #include "../../../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../../MultiPlayerLevel.h"
-#include "../../../Minecraft.World\LevelData.h"
+#include "../../../Minecraft.World/LevelData.h"
 #include "IUIScene_HUD.h"
 
 #include "UI.h"

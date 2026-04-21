@@ -1,10 +1,10 @@
 ﻿#include "stdafx.h"
 #include "GuardianRenderer.h"
 #include "GuardianModel.h"
-#include "..\Minecraft.World\Mth.h"
-#include "..\Minecraft.World\net.minecraft.world.entity.animal.h"
+#include "../Minecraft.World/Mth.h"
+#include "../Minecraft.World/net.minecraft.world.entity.animal.h"
 #include "../Minecraft.World/Guardian.h"
-#include "..\Minecraft.World\Level.h"
+#include "../Minecraft.World/Level.h"
 #include "Tesselator.h"
 
 

@@ -1,8 +1,8 @@
 ﻿#include "stdafx.h"
 #include "GuardianModel.h"
-#include "..\Minecraft.World\Mth.h"
+#include "../Minecraft.World/Mth.h"
 #include "ModelPart.h"
-#include "..\Minecraft.World\Guardian.h"
+#include "../Minecraft.World/Guardian.h"
 
 
 

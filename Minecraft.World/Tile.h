@@ -388,8 +388,8 @@ public:
 	static const int invertedDaylightDetector_Id = 178;
 	static const int red_sandstone_Id = 179;
 	static const int stairs_red_sandstone_Id = 180;
-	//181 double_stone_slab2 : sandstoneslab
-	//182 stone_slab2 : sandstoneslab
+	static const int double_stone_slab2_Id = 181;
+	static const int stone_slab2_Id = 182;
 	static const int spruceGate_Id = 183;
 	static const int birchGate_Id = 184;
 	static const int jungleGate_Id = 185;
@@ -629,6 +629,8 @@ public:
 	static Tile* invertedDaylightDetector;
 	static Tile* red_sandstone;
 	static Tile* stairs_red_sandstone;
+	static HalfSlabTile* stoneSlab2;
+	static HalfSlabTile* stoneSlab2Half;
 	static Tile* tree2Trunk;
 	static Tile* packedIce;
 	static Tile* seaLantern;

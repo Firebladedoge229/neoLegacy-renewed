@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "RabbitModel.h"
 #include "ModelPart.h"
-#include "..\Minecraft.World\Mth.h"
+#include "../Minecraft.World/Mth.h"
 #include "../Minecraft.World/Rabbit.h"
 
 #define PI 3.14159265358979323846f

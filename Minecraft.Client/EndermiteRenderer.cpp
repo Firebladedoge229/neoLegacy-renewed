@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "EndermiteRenderer.h"
-#include "..\Minecraft.World\net.minecraft.world.entity.monster.h"
+#include "../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "EndermiteModel.h"
 
 ResourceLocation EndermiteRenderer::ENDERMITE_LOCATION(TN_MOB_ENDERMITE);

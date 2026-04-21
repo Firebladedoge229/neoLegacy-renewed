@@ -5,7 +5,7 @@
 #include "net.minecraft.world.entity.ai.attributes.h"
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.h"
-#include "..\Minecraft.Client\Textures.h"
+#include "../Minecraft.Client/Textures.h"
 #include "Endermite.h"
 #include "SoundTypes.h"
 #include "Random.h" 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "EndermiteModel.h"
 #include "Cube.h"
-#include "..\Minecraft.World\Mth.h"
+#include "../Minecraft.World/Mth.h"
 #include "ModelPart.h"
 
 

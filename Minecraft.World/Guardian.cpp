@@ -11,9 +11,9 @@
 #include "net.minecraft.world.damagesource.h"
 #include "SharedConstants.h"
 #include "Guardian.h"
-#include "..\Minecraft.Client\Textures.h"
-#include "..\Minecraft.World\Mth.h"
-#include "..\Minecraft.World\net.minecraft.world.entity.animal.h"
+#include "../Minecraft.Client/Textures.h"
+#include "../Minecraft.World/Mth.h"
+#include "../Minecraft.World/net.minecraft.world.entity.animal.h"
 #include "MobEffect.h"
 #include "MobEffectInstance.h"
 

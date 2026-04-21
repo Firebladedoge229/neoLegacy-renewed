@@ -12,7 +12,7 @@
 #include "SharedMonsterAttributes.h"
 #include "ArmorStand.h"
 #include "BlockPos.h"
-#include "..\Minecraft.Client\ServerLevel.h"
+#include "../Minecraft.Client/ServerLevel.h"
 #include "ParticleTypes.h"
 #include "Random.h"
 #include "AABB.h"

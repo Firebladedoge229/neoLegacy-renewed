@@ -17,7 +17,7 @@
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 #include "../Minecraft.Server/ServerLogManager.h"
 #include "../Minecraft.Server/Access/Access.h"
-#include "..\Minecraft.Server/Security/SecurityConfig.h"
+#include "../Minecraft.Server/Security/SecurityConfig.h"
 #include "../Minecraft.World/Socket.h"
 #include <FourKitBridge.h>
 #include <Windows64/Network/WinsockNetLayer.h>

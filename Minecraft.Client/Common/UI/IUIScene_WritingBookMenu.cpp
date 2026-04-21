@@ -2,7 +2,7 @@
 #include <vector>
 #include "IUIScene_WritingBookMenu.h"
 #include "MultiPlayerLocalPlayer.h"
-#include "Common\UI\UI.h"
+#include "Common/UI/UI.h"
 #include "ClientConnection.h"
 #include "../Minecraft.World/CustomPayloadPacket.h"
 
