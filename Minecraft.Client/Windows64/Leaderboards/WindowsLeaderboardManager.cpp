@@ -3,6 +3,7 @@
 #include "WindowsLeaderboardManager.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "../../Minecraft.h"
 #include "../../StatsCounter.h"
@@ -14,11 +15,12 @@
 
 namespace
 {
-	static const DWORD kLeaderboardCacheMagic = 0x31424C57; // WLB1
-	static const DWORD kLeaderboardCacheVersion = 1;
+	static const DWORD kLeaderboardCacheMagic = 0x31424C57; // file identifier: WLB1
+	static const DWORD kLeaderboardCacheVersion = 2;
 	static const unsigned int kDifficultyCount = 4;
 	static const unsigned int kPersistedBoardCount =
 		static_cast<unsigned int>(LeaderboardManager::eStatsType_MAX) * kDifficultyCount;
+	static const unsigned int kMaxRowsPerBoard = 64;
 
 	struct PersistedLeaderboardRow
 	{
@@ -31,11 +33,17 @@ namespace
 		wchar_t name[XUSER_NAME_SIZE + 1];
 	};
 
+	struct PersistedLeaderboardBoard
+	{
+		DWORD rowCount;
+		PersistedLeaderboardRow rows[kMaxRowsPerBoard];
+	};
+
 	struct PersistedLeaderboardCache
 	{
 		DWORD magic;
 		DWORD version;
-		PersistedLeaderboardRow rows[kPersistedBoardCount];
+		PersistedLeaderboardBoard boards[kPersistedBoardCount];
 	};
 
 	static int ClampDifficulty(int difficulty)
@@ -102,18 +110,43 @@ namespace
 		if (fopen_s(&f, filePath, "rb") != 0 || f == nullptr)
 			return false;
 
-		PersistedLeaderboardCache loaded = {};
-		const size_t read = fread(&loaded, 1, sizeof(loaded), f);
+		if (fseek(f, 0, SEEK_END) != 0)
+		{
+			fclose(f);
+			return false;
+		}
+
+		const long fileSize = ftell(f);
+		if (fileSize <= 0 || fseek(f, 0, SEEK_SET) != 0)
+		{
+			fclose(f);
+			return false;
+		}
+
+		if (static_cast<size_t>(fileSize) == sizeof(PersistedLeaderboardCache))
+		{
+			PersistedLeaderboardCache loaded = {};
+			const size_t read = fread(&loaded, 1, sizeof(loaded), f);
+			fclose(f);
+
+			if (read != sizeof(loaded))
+				return false;
+
+			if (loaded.magic != kLeaderboardCacheMagic || loaded.version != kLeaderboardCacheVersion)
+				return false;
+
+			outCache = loaded;
+			for (unsigned int boardIndex = 0; boardIndex < kPersistedBoardCount; ++boardIndex)
+			{
+				if (outCache.boards[boardIndex].rowCount > kMaxRowsPerBoard)
+					outCache.boards[boardIndex].rowCount = kMaxRowsPerBoard;
+			}
+
+			return true;
+		}
+
 		fclose(f);
-
-		if (read != sizeof(loaded))
-			return false;
-
-		if (loaded.magic != kLeaderboardCacheMagic || loaded.version != kLeaderboardCacheVersion)
-			return false;
-
-		outCache = loaded;
-		return true;
+		return false;
 	}
 
 	static void SaveLeaderboardCache(const PersistedLeaderboardCache& cache)
@@ -129,7 +162,7 @@ namespace
 		fclose(f);
 	}
 
-	static int GetPersistedRowIndex(LeaderboardManager::EStatsType type, unsigned int difficulty)
+	static int GetPersistedBoardIndex(LeaderboardManager::EStatsType type, unsigned int difficulty)
 	{
 		if (type < 0 || type >= LeaderboardManager::eStatsType_MAX)
 			return -1;
@@ -139,6 +172,11 @@ namespace
 			clampedDifficulty = 1;
 
 		return static_cast<int>(type) * static_cast<int>(kDifficultyCount) + static_cast<int>(clampedDifficulty);
+	}
+
+	static unsigned int GetBoardRowCount(const PersistedLeaderboardBoard& board)
+	{
+		return (board.rowCount > kMaxRowsPerBoard) ? kMaxRowsPerBoard : board.rowCount;
 	}
 
 	static void RecomputeTotalScore(LeaderboardManager::ReadScore& score)
@@ -211,6 +249,154 @@ namespace
 			wcsncpy_s(row.name, score.m_name.c_str(), _TRUNCATE);
 	}
 
+	static int FindMatchingRowIndex(const PersistedLeaderboardBoard& board, const LeaderboardManager::ReadScore& score)
+	{
+		const unsigned int rowCount = GetBoardRowCount(board);
+
+		if (!score.m_name.empty())
+		{
+			for (unsigned int rowIndex = 0; rowIndex < rowCount; ++rowIndex)
+			{
+				const PersistedLeaderboardRow& row = board.rows[rowIndex];
+				if (row.valid == 0 || row.name[0] == 0)
+					continue;
+
+				if (_wcsicmp(row.name, score.m_name.c_str()) == 0)
+					return static_cast<int>(rowIndex);
+			}
+
+			return -1;
+		}
+
+		if (score.m_uid != INVALID_XUID)
+		{
+			for (unsigned int rowIndex = 0; rowIndex < rowCount; ++rowIndex)
+			{
+				const PersistedLeaderboardRow& row = board.rows[rowIndex];
+				if (row.valid == 0)
+					continue;
+
+				if (static_cast<PlayerUID>(row.uid) == score.m_uid)
+					return static_cast<int>(rowIndex);
+			}
+		}
+
+		return -1;
+	}
+
+	static int FindWritableRowIndex(PersistedLeaderboardBoard& board, const LeaderboardManager::ReadScore& score)
+	{
+		if (board.rowCount > kMaxRowsPerBoard)
+			board.rowCount = kMaxRowsPerBoard;
+
+		const int matchingRowIndex = FindMatchingRowIndex(board, score);
+		if (matchingRowIndex >= 0)
+			return matchingRowIndex;
+
+		const unsigned int rowCount = GetBoardRowCount(board);
+		for (unsigned int rowIndex = 0; rowIndex < rowCount; ++rowIndex)
+		{
+			if (board.rows[rowIndex].valid == 0)
+				return static_cast<int>(rowIndex);
+		}
+
+		if (rowCount < kMaxRowsPerBoard)
+		{
+			board.rowCount = rowCount + 1;
+			return static_cast<int>(rowCount);
+		}
+
+		unsigned int replaceIndex = 0;
+		DWORD lowestScore = ULONG_MAX;
+		for (unsigned int rowIndex = 0; rowIndex < kMaxRowsPerBoard; ++rowIndex)
+		{
+			if (board.rows[rowIndex].valid == 0)
+				return static_cast<int>(rowIndex);
+
+			if (board.rows[rowIndex].totalScore <= lowestScore)
+			{
+				lowestScore = board.rows[rowIndex].totalScore;
+				replaceIndex = rowIndex;
+			}
+		}
+
+		return static_cast<int>(replaceIndex);
+	}
+
+	static void MergeScoreWithPersistedRow(const PersistedLeaderboardRow& persistedRow, LeaderboardManager::ReadScore& inOutScore)
+	{
+		if (persistedRow.valid == 0)
+			return;
+
+		const bool currentHasData = ScoreHasAnyData(inOutScore);
+		if (!currentHasData)
+		{
+			ApplyPersistedRow(persistedRow, inOutScore);
+			return;
+		}
+
+		if (persistedRow.statsSize == inOutScore.m_statsSize)
+		{
+			const unsigned int columnCount = std::min<unsigned int>(
+				static_cast<unsigned int>(inOutScore.m_statsSize),
+				LeaderboardManager::ReadScore::STATSDATA_MAX);
+
+			for (unsigned int i = 0; i < columnCount; ++i)
+				inOutScore.m_statsData[i] = (std::max)(inOutScore.m_statsData[i], persistedRow.statsData[i]);
+
+			RecomputeTotalScore(inOutScore);
+		}
+
+		if (inOutScore.m_name.empty() && persistedRow.name[0] != 0)
+			inOutScore.m_name = persistedRow.name;
+	}
+
+	static bool RowMatchesPlayer(const LeaderboardManager::ReadScore& row, const LeaderboardManager::ReadScore& player)
+	{
+		if (!player.m_name.empty() && !row.m_name.empty())
+			return _wcsicmp(row.m_name.c_str(), player.m_name.c_str()) == 0;
+
+		if (player.m_uid != INVALID_XUID)
+			return row.m_uid == player.m_uid;
+
+		return false;
+	}
+
+	static bool CompareRowsForRank(const LeaderboardManager::ReadScore& left, const LeaderboardManager::ReadScore& right)
+	{
+		if (left.m_totalScore != right.m_totalScore)
+			return left.m_totalScore > right.m_totalScore;
+
+		const wchar_t* leftName = left.m_name.empty() ? L"" : left.m_name.c_str();
+		const wchar_t* rightName = right.m_name.empty() ? L"" : right.m_name.c_str();
+		const int nameCompare = _wcsicmp(leftName, rightName);
+		if (nameCompare != 0)
+			return nameCompare < 0;
+
+		return left.m_uid < right.m_uid;
+	}
+
+	static void CollectScoresFromBoard(const PersistedLeaderboardBoard& board,
+		std::vector<LeaderboardManager::ReadScore>& outScores)
+	{
+		const unsigned int rowCount = GetBoardRowCount(board);
+		outScores.reserve(outScores.size() + rowCount);
+
+		for (unsigned int rowIndex = 0; rowIndex < rowCount; ++rowIndex)
+		{
+			const PersistedLeaderboardRow& row = board.rows[rowIndex];
+			if (row.valid == 0)
+				continue;
+
+			LeaderboardManager::ReadScore score = {};
+			ApplyPersistedRow(row, score);
+			if (score.m_statsSize == 0)
+				continue;
+
+			outScores.push_back(score);
+		}
+	}
+
 	static bool BuildReadScoreFromRegisterScore(const LeaderboardManager::RegisterScore& source,
 		LeaderboardManager::ReadScore& outScore)
 	{
@@ -221,7 +407,12 @@ namespace
 		outScore.m_uid = uid;
 		outScore.m_rank = 1;
 		outScore.m_idsErrorMessage = 0;
-		outScore.m_name = convStringToWstring(ProfileManager.GetGamertag(source.m_iPad));
+
+		char* gamertag = ProfileManager.GetGamertag(source.m_iPad);
+		if (gamertag != nullptr && gamertag[0] != 0)
+			outScore.m_name = convStringToWstring(gamertag);
+		else
+			outScore.m_name = L"Player";
 
 		switch (source.m_commentData.m_statsType)
 		{
@@ -277,7 +468,7 @@ namespace
 	}
 }
 
-LeaderboardManager *LeaderboardManager::m_instance = new WindowsLeaderboardManager(); //Singleton instance of the LeaderboardManager
+LeaderboardManager *LeaderboardManager::m_instance = new WindowsLeaderboardManager(); // Singleton instance of the LeaderboardManager
 
 bool WindowsLeaderboardManager::WriteStats(unsigned int viewCount, ViewIn views)
 {
@@ -296,11 +487,16 @@ bool WindowsLeaderboardManager::WriteStats(unsigned int viewCount, ViewIn views)
 			if (views[i].m_commentData.m_statsType == eStatsType_Kills && difficulty == 0)
 				difficulty = 1;
 
-			const int index = GetPersistedRowIndex(views[i].m_commentData.m_statsType, difficulty);
-			if (index < 0 || index >= static_cast<int>(kPersistedBoardCount))
+			const int boardIndex = GetPersistedBoardIndex(views[i].m_commentData.m_statsType, difficulty);
+			if (boardIndex < 0 || boardIndex >= static_cast<int>(kPersistedBoardCount))
 				continue;
 
-			PersistRow(cache.rows[index], score);
+			PersistedLeaderboardBoard& board = cache.boards[boardIndex];
+			const int rowIndex = FindWritableRowIndex(board, score);
+			if (rowIndex < 0 || rowIndex >= static_cast<int>(kMaxRowsPerBoard))
+				continue;
+
+			PersistRow(board.rows[rowIndex], score);
 		}
 
 		delete[] views;
@@ -346,22 +542,107 @@ bool WindowsLeaderboardManager::ReadLocalStats(LeaderboardReadListener* callback
 		return false;
 
 	ReadView view = {};
-	ReadScore row = {};
+	ReadScore localScore = {};
 
-	if (BuildLocalReadScore(row, difficulty, type, uid))
-	{
-		view.m_numQueries = 1;
-		view.m_queries = &row;
-
-		callback->OnStatsReadComplete(eStatsReturn_Success, 1, view);
-	}
-	else
+	if (!BuildLocalReadScore(localScore, difficulty, type, uid))
 	{
 		view.m_numQueries = 0;
 		view.m_queries = nullptr;
-
 		callback->OnStatsReadComplete(eStatsReturn_NoResults, 0, view);
+		return true;
 	}
+
+	unsigned int diff = static_cast<unsigned int>(ClampDifficulty(difficulty));
+	if (type == eStatsType_Kills && diff == 0)
+		diff = 1;
+
+	std::vector<ReadScore> allRows;
+	PersistedLeaderboardCache cache = {};
+	LoadLeaderboardCache(cache);
+
+	const int boardIndex = GetPersistedBoardIndex(type, diff);
+	if (boardIndex >= 0 && boardIndex < static_cast<int>(kPersistedBoardCount))
+		CollectScoresFromBoard(cache.boards[boardIndex], allRows);
+
+	bool hasLocalRow = false;
+	for (const ReadScore& row : allRows)
+	{
+		if (RowMatchesPlayer(row, localScore))
+		{
+			hasLocalRow = true;
+			break;
+		}
+	}
+
+	if (!hasLocalRow)
+		allRows.push_back(localScore);
+
+	if (allRows.empty())
+	{
+		view.m_numQueries = 0;
+		view.m_queries = nullptr;
+		callback->OnStatsReadComplete(eStatsReturn_NoResults, 0, view);
+		return true;
+	}
+
+	std::sort(allRows.begin(), allRows.end(), CompareRowsForRank);
+	for (size_t i = 0; i < allRows.size(); ++i)
+		allRows[i].m_rank = static_cast<unsigned long>(i + 1);
+
+	size_t playerIndex = 0;
+	for (size_t i = 0; i < allRows.size(); ++i)
+	{
+		if (RowMatchesPlayer(allRows[i], localScore))
+		{
+			playerIndex = i;
+			break;
+		}
+	}
+
+	size_t pageStart = 0;
+	size_t pageCount = allRows.size();
+
+	if (m_eFilterMode == eFM_MyScore)
+	{
+		pageStart = playerIndex;
+		pageCount = 1;
+	}
+	else if (m_eFilterMode == eFM_TopRank)
+	{
+		if (m_startIndex > 0)
+			pageStart = std::min<size_t>(static_cast<size_t>(m_startIndex - 1), allRows.size());
+
+		pageCount = allRows.size() - pageStart;
+		if (m_readCount > 0)
+			pageCount = std::min<size_t>(pageCount, static_cast<size_t>(m_readCount));
+	}
+
+	std::vector<ReadScore> pageRows;
+	if (pageStart < allRows.size() && pageCount > 0)
+	{
+		pageRows.insert(
+			pageRows.end(),
+			allRows.begin() + static_cast<std::ptrdiff_t>(pageStart),
+			allRows.begin() + static_cast<std::ptrdiff_t>(pageStart + pageCount));
+	}
+
+	if (pageRows.empty())
+	{
+		view.m_numQueries = 0;
+		view.m_queries = nullptr;
+		callback->OnStatsReadComplete(eStatsReturn_NoResults, 0, view);
+		return true;
+	}
+
+	view.m_numQueries = static_cast<unsigned int>(pageRows.size());
+	view.m_queries = pageRows.data();
+	const int totalResults = (m_eFilterMode == eFM_MyScore)
+		? static_cast<int>(pageRows.size())
+		: static_cast<int>(allRows.size());
+	callback->OnStatsReadComplete(
+		eStatsReturn_Success,
+		totalResults,
+		view);
 
 	return true;
 }
@@ -458,35 +739,19 @@ bool WindowsLeaderboardManager::BuildLocalReadScore(ReadScore& outScore, int dif
 	PersistedLeaderboardCache cache = {};
 	LoadLeaderboardCache(cache);
 
-	const int persistedIndex = GetPersistedRowIndex(type, diff);
-	if (persistedIndex >= 0 && persistedIndex < static_cast<int>(kPersistedBoardCount))
+	const int boardIndex = GetPersistedBoardIndex(type, diff);
+	if (boardIndex >= 0 && boardIndex < static_cast<int>(kPersistedBoardCount))
 	{
-		PersistedLeaderboardRow& persistedRow = cache.rows[persistedIndex];
-		const bool currentHasData = ScoreHasAnyData(outScore);
+		PersistedLeaderboardBoard& board = cache.boards[boardIndex];
 
-		if (persistedRow.valid != 0)
-		{
-			if (!currentHasData)
-			{
-				ApplyPersistedRow(persistedRow, outScore);
-			}
-			else if (persistedRow.statsSize == outScore.m_statsSize)
-			{
-				const unsigned int columnCount = std::min<unsigned int>(
-					static_cast<unsigned int>(outScore.m_statsSize),
-					ReadScore::STATSDATA_MAX);
+		const int matchingRowIndex = FindMatchingRowIndex(board, outScore);
+		if (matchingRowIndex >= 0 && matchingRowIndex < static_cast<int>(kMaxRowsPerBoard))
+			MergeScoreWithPersistedRow(board.rows[matchingRowIndex], outScore);
 
-				for (unsigned int i = 0; i < columnCount; ++i)
-					outScore.m_statsData[i] = (std::max)(outScore.m_statsData[i], persistedRow.statsData[i]);
+		const int writeRowIndex = FindWritableRowIndex(board, outScore);
+		if (writeRowIndex >= 0 && writeRowIndex < static_cast<int>(kMaxRowsPerBoard))
+			PersistRow(board.rows[writeRowIndex], outScore);
 
-				RecomputeTotalScore(outScore);
-
-				if (outScore.m_name.empty() && persistedRow.name[0] != 0)
-					outScore.m_name = persistedRow.name;
-			}
-		}
-
-		PersistRow(persistedRow, outScore);
 		SaveLeaderboardCache(cache);
 	}
 

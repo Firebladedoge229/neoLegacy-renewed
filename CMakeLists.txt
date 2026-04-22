@@ -99,6 +99,8 @@ list(APPEND MINECRAFT_SHARED_DEFINES ${PLATFORM_DEFINES})
 # ---
 # Sources
 # ---
+add_subdirectory("Minecraft.Client/${PLATFORM_NAME}/4JLibs")
+
 add_subdirectory(Minecraft.World)
 add_subdirectory(Minecraft.Client)
 if(PLATFORM_NAME STREQUAL "Windows64") # Server is only supported on Windows for now
