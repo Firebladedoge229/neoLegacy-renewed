@@ -57,11 +57,12 @@ if(PLATFORM_NAME STREQUAL "Windows64")
 endif()
 
 target_include_directories(Minecraft.Client PRIVATE
-  "${CMAKE_BINARY_DIR}/generated/" # This is for the generated BuildVer.h
+  "${CMAKE_BINARY_DIR}/generated" # This is for the generated BuildVer.h
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_NAME}/Iggy/include"
-  "${CMAKE_SOURCE_DIR}/include/"
+  "${CMAKE_SOURCE_DIR}/include"
 )
+
 target_compile_definitions(Minecraft.Client PRIVATE
   ${MINECRAFT_SHARED_DEFINES}
 )
