@@ -571,10 +571,10 @@ Recipes::Recipes()
 		L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::STONE_SLAB), //
-		L"sctg",
+		L"sczg",
 		L"###", //
 
-		L'#', Tile::stone,
+		L'#', new ItemInstance(Tile::stone, 1, 0),
 		L'S');
 	addShapedRecipy(new ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::COBBLESTONE_SLAB), //
 		L"sctg",
@@ -912,20 +912,20 @@ Recipes::Recipes()
 		L'M');
 
 	addShapedRecipy(new ItemInstance(Item::repeater, 1), //
-		L"ssctcictg",
+		L"ssctciczg",
 		L"#X#", //
 		L"III", //
 
-		L'#', Tile::redstoneTorch_on, L'X', Item::redStone, L'I', Tile::stone,
+		L'#', Tile::redstoneTorch_on, L'X', Item::redStone, L'I', new ItemInstance(Tile::stone, 1, 0),
 		L'M');
 
 	addShapedRecipy(new ItemInstance(Item::comparator, 1), //
-		L"sssctcictg",
+		L"sssctciczg",
 		L" # ", //
 		L"#X#", //
 		L"III", //
 
-		L'#', Tile::redstoneTorch_on, L'X', Item::netherQuartz, L'I', Tile::stone,
+		L'#', Tile::redstoneTorch_on, L'X', Item::netherQuartz, L'I', new ItemInstance(Tile::stone, 1, 0),
 		L'M');
 
 	addShapedRecipy(new ItemInstance(Tile::daylightDetector),
@@ -998,10 +998,10 @@ Recipes::Recipes()
 		L'T');
 
 	addShapedRecipy(new ItemInstance(Tile::button, 1), //
-		L"sctg",
+		L"sczg",
 		L"#", //
 
-		L'#', Tile::stone,
+		L'#', new ItemInstance(Tile::stone, 1, 0),
 		L'M');
 
 	addShapedRecipy(new ItemInstance(Tile::button_wood, 1), //
@@ -1018,9 +1018,9 @@ Recipes::Recipes()
 		L'M');
 
 	addShapedRecipy(new ItemInstance(Tile::pressurePlate_stone, 1), //
-		L"sctg",
+		L"scg",
 		L"##", //
-		L'#', Tile::stone,
+		L'#', new ItemInstance(Tile::stone, 1, 0),
 		L'M');
 
 	addShapedRecipy(new ItemInstance(Tile::weightedPlate_heavy, 1), //

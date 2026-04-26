@@ -124,11 +124,11 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'S');
 
 	r->addShapedRecipy(new ItemInstance(Tile::stoneBrick, 4), //
-		L"ssctg",
+		L"ssczg",
 		L"##", //
 		L"##", //
 
-		L'#', Tile::stone,
+		L'#', new ItemInstance(Tile::stone, 1, 0),
 		L'S');
 	r->addShapedRecipy(new ItemInstance(Tile::stoneBrick, 1, SmoothStoneBrickTile::TYPE_DETAIL), //
 		L"ssczg",
