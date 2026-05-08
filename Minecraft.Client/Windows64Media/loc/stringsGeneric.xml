@@ -6578,6 +6578,10 @@ Would you like to install the mash-up pack or texture pack now?</value>
 		<value>Render Clouds</value>
 	</data>	
 
+	<data name="IDS_CHECKBOX_CAVE_SOUNDS">
+		<value>Cave Sounds</value>
+	</data>
+
 	<data name="IDS_TEXT_SAVEOPTIONS">
 		<value>What would you like to do with this save game?</value>
 	</data>	
@@ -7482,7 +7486,7 @@ Would you like to install the mash-up pack or texture pack now?</value>
 	</data>	
 
 	<data name="IDS_OPTIONS">
-		<value>Options</value>
+		<value>Game Options</value>
 	</data>	
 
 	<data name="IDS_AUDIO">

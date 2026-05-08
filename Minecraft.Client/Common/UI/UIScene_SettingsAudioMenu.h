@@ -8,13 +8,16 @@ private:
 	enum EControls
 	{
 		eControl_Music,
-		eControl_Sound
+		eControl_Sound,
+		eControl_CaveSounds
 	};
 
 	UIControl_Slider m_sliderMusic, m_sliderSound; // Sliders
+	UIControl_CheckBox m_checkboxCaveSounds; // Checkboxes
 	UI_BEGIN_MAP_ELEMENTS_AND_NAMES(UIScene)
 		UI_MAP_ELEMENT( m_sliderMusic, "Music")
 		UI_MAP_ELEMENT( m_sliderSound, "Sound")
+		UI_MAP_ELEMENT( m_checkboxCaveSounds, "CaveSounds")
 	UI_END_MAP_ELEMENTS_AND_NAMES()
 
 public:
@@ -34,5 +37,4 @@ public:
 	// INPUT
 	virtual void handleInput(int iPad, int key, bool repeat, bool pressed, bool released, bool &handled);
 
-	virtual void handleSliderMove(F64 sliderId, F64 currentValue);
-};
+	virtual void handleSliderMove(F64 sliderId, F64 currentValue);	virtual void handleCheckboxToggled(F64 controlId, bool selected);};

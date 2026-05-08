@@ -14,6 +14,8 @@ UIScene_SettingsAudioMenu::UIScene_SettingsAudioMenu(int iPad, void *initData, U
 	swprintf( (WCHAR *)TempString, 256, L"%ls: %d%%", app.GetString( IDS_SLIDER_SOUND ),app.GetGameSettings(m_iPad,eGameSetting_SoundFXVolume));	
 	m_sliderSound.init(TempString,eControl_Sound,0,100,app.GetGameSettings(m_iPad,eGameSetting_SoundFXVolume));
 
+	m_checkboxCaveSounds.init(L"Cave Sounds",eControl_CaveSounds,(app.GetGameSettings(m_iPad,eGameSetting_CaveSounds)!=0));
+
 	doHorizontalResizeCheck();
 
 	if(app.GetLocalPlayerCount()>1)
@@ -111,6 +113,16 @@ void UIScene_SettingsAudioMenu::handleSliderMove(F64 sliderId, F64 currentValue)
 		swprintf( (WCHAR *)TempString, 256, L"%ls: %d%%", app.GetString( IDS_SLIDER_SOUND ),value);
 		m_sliderSound.setLabel(TempString);
 
+		break;
+	}
+}
+
+void UIScene_SettingsAudioMenu::handleCheckboxToggled(F64 controlId, bool selected)
+{
+	switch(static_cast<int>(controlId))
+	{
+	case eControl_CaveSounds:
+		app.SetGameSettings(m_iPad, eGameSetting_CaveSounds, selected ? 1 : 0);
 		break;
 	}
 }

@@ -184,6 +184,7 @@ enum eGameSetting
 
 	//TU25
 	eGameSetting_ClassicCrafting,
+	eGameSetting_CaveSounds,
 };
 
 

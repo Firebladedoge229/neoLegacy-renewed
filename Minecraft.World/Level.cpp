@@ -3321,13 +3321,17 @@ void Level::tickClientSideTiles(int xo, int zo, LevelChunk *lc)
 			shared_ptr<Player> player = getNearestPlayer(x + 0.5, y + 0.5, z + 0.5, 8);
 			if (player != nullptr && player->distanceToSqr(x + 0.5, y + 0.5, z + 0.5) > 2 * 2)
 			{
-				// 4J-PB - Fixed issue with cave audio event having 2 sounds at 192k
+				// check for cave sound functionality
+				if (app.GetGameSettings(player->entityId, eGameSetting_CaveSounds))
+				{
+					// 4J-PB - Fixed issue with cave audio event having 2 sounds at 192k
 #ifdef _XBOX
-				this->playSound(x + 0.5, y + 0.5, z + 0.5,eSoundType_AMBIENT_CAVE_CAVE2, 0.7f, 0.8f + random->nextFloat() * 0.2f);
+					this->playSound(x + 0.5, y + 0.5, z + 0.5,eSoundType_AMBIENT_CAVE_CAVE2, 0.7f, 0.8f + random->nextFloat() * 0.2f);
 #else
-				this->playSound(x + 0.5, y + 0.5, z + 0.5,eSoundType_AMBIENT_CAVE_CAVE, 0.7f, 0.8f + random->nextFloat() * 0.2f);
+					this->playSound(x + 0.5, y + 0.5, z + 0.5,eSoundType_AMBIENT_CAVE_CAVE, 0.7f, 0.8f + random->nextFloat() * 0.2f);
 #endif
-				delayUntilNextMoodSound = random->nextInt(SharedConstants::TICKS_PER_SECOND * 60 * 10) + SharedConstants::TICKS_PER_SECOND * 60 * 5;
+					delayUntilNextMoodSound = random->nextInt(SharedConstants::TICKS_PER_SECOND * 60 * 10) + SharedConstants::TICKS_PER_SECOND * 60 * 5;
+				}
 			}
 		}
 	}
