@@ -1043,6 +1043,8 @@ int CMinecraftApp::SetDefaultOptions(C_4JProfile::PROFILESETTINGS *pSettings,con
 	//TU25
 	SetGameSettings(iPad, eGameSetting_ClassicCrafting, 0);
 	SetGameSettings(iPad, eGameSetting_CaveSounds, 1);
+
+	//TU34
 	SetGameSettings(iPad, eGameSetting_MinecartSounds, 1);
 
 	// 4J-PB - leave these in, or remove from everywhere they are referenced!
