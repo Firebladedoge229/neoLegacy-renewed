@@ -1043,6 +1043,7 @@ int CMinecraftApp::SetDefaultOptions(C_4JProfile::PROFILESETTINGS *pSettings,con
 	//TU25
 	SetGameSettings(iPad, eGameSetting_ClassicCrafting, 0);
 	SetGameSettings(iPad, eGameSetting_CaveSounds, 1);
+	SetGameSettings(iPad, eGameSetting_MinecartSounds, 1);
 
 	// 4J-PB - leave these in, or remove from everywhere they are referenced!
 	// Although probably best to leave in unless we split the profile settings into platform specific classes - having different meaning per platform for the same bitmask could get confusing
@@ -1504,6 +1505,7 @@ void CMinecraftApp::ApplyGameSettingsChanged(int iPad)
 	//TU25
 	ActionGameSettings(iPad, eGameSetting_ClassicCrafting);
 	ActionGameSettings(iPad, eGameSetting_CaveSounds);
+	ActionGameSettings(iPad, eGameSetting_MinecartSounds);
 }
 
 void CMinecraftApp::ActionGameSettings(int iPad,eGameSetting eVal)
@@ -2529,6 +2531,21 @@ void CMinecraftApp::SetGameSettings(int iPad,eGameSetting eVal,unsigned char ucV
 			GameSettingsA[iPad]->bSettingsChanged = true;
 		}
 		break;
+	case eGameSetting_MinecartSounds:
+		if ((GameSettingsA[iPad]->uiBitmaskValues & GAMESETTING_MINECARTSOUNDS) != (ucVal & 0x01) << 28)
+		{
+			if (ucVal == 1)
+			{
+				GameSettingsA[iPad]->uiBitmaskValues |= GAMESETTING_MINECARTSOUNDS;
+			}
+			else
+			{
+				GameSettingsA[iPad]->uiBitmaskValues &= ~GAMESETTING_MINECARTSOUNDS;
+			}
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
 	}
 }
 
@@ -2669,6 +2686,9 @@ unsigned char CMinecraftApp::GetGameSettings(int iPad,eGameSetting eVal)
 
 	case eGameSetting_CaveSounds:
 		return (GameSettingsA[iPad]->uiBitmaskValues & GAMESETTING_CAVESOUNDS) >> 27;
+
+	case eGameSetting_MinecartSounds:
+		return (GameSettingsA[iPad]->uiBitmaskValues & GAMESETTING_MINECARTSOUNDS) >> 28;
 
 	case eGameSetting_VSync:
 		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_VSYNC)>>24;

@@ -9,15 +9,18 @@ private:
 	{
 		eControl_Music,
 		eControl_Sound,
-		eControl_CaveSounds
+		eControl_CaveSounds,
+		eControl_MinecartSounds
 	};
 
 	UIControl_Slider m_sliderMusic, m_sliderSound; // Sliders
 	UIControl_CheckBox m_checkboxCaveSounds; // Checkboxes
+	UIControl_CheckBox m_checkboxMinecartSounds;
 	UI_BEGIN_MAP_ELEMENTS_AND_NAMES(UIScene)
 		UI_MAP_ELEMENT( m_sliderMusic, "Music")
 		UI_MAP_ELEMENT( m_sliderSound, "Sound")
 		UI_MAP_ELEMENT( m_checkboxCaveSounds, "CaveSounds")
+		UI_MAP_ELEMENT( m_checkboxMinecartSounds, "MinecartSounds")
 	UI_END_MAP_ELEMENTS_AND_NAMES()
 
 public:

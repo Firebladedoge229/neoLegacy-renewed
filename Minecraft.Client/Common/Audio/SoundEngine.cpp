@@ -605,34 +605,8 @@ void SoundEngine::play(int iSound, float x, float y, float z, float volume, floa
     m_activeSounds.push_back(s);
 }
 
-/////////////////////////////////////////////
-//
-//	
-//  startElytraSound / stopElytraSound
-//  Manages a single persistent looping sound for elytra gliding.
-//  Call startElytraSound every tick while gliding (it no-ops if already running,
-//  just updates volume). Call stopElytraSound when gliding ends.
-//
-//  IMPORTANT: m_elytraLoopingSound is NOT added to m_activeSounds.
-//  The tick() cleanup loop deletes sounds where is_playing()==false.
-//  A looping sound briefly reports is_playing()==false at the loop point,
-//  which would cause tick() to free it and leave m_elytraLoopingSound dangling.
-//
-/////////////////////////////////////////////
-void SoundEngine::startElytraSound(float x, float y, float z, float volume, float pitch)
+MiniAudioSound* SoundEngine::startLoopingSound(const wstring& name, float x, float y, float z, float volume, float pitch, bool bIs3D)
 {
-	// If already initialized just update volume and pitch - never reinitialize mid-flight.
-	if (m_elytraLoopingSound != nullptr)
-	{
-		float finalVolume = volume * m_MasterEffectsVolume * SFX_VOLUME_MULTIPLIER;
-		if (finalVolume > SFX_MAX_GAIN) finalVolume = SFX_MAX_GAIN;
-		ma_sound_set_volume(&m_elytraLoopingSound->sound, finalVolume);
-		ma_sound_set_pitch(&m_elytraLoopingSound->sound, pitch);
-		return;
-	}
-
-	// Resolve file path using the same logic as play().
-	wstring name = wchSoundNames[eSoundType_ITEM_ELYTRA_FLYING];
 	char* soundName = ConvertSoundPathToName(name);
 	char basePath[256];
 	sprintf_s(basePath, "Windows64Media/Sound/Minecraft/%s", soundName);
@@ -652,42 +626,100 @@ void SoundEngine::startElytraSound(float x, float y, float z, float volume, floa
 			break;
 		}
 	}
-	if (!found) return;
+	if (!found)
+	{
+		return nullptr;
+	}
 
 	MiniAudioSound* s = new MiniAudioSound();
 	memset(&s->info, 0, sizeof(AUDIO_INFO));
-	s->info.volume = volume; s->info.pitch = pitch;
-	s->info.bIs3D = false;
-	s->info.iSound = eSoundType_ITEM_ELYTRA_FLYING + eSFX_MAX;
+	s->info.x = x;
+	s->info.y = y;
+	s->info.z = z;
+	s->info.volume = volume;
+	s->info.pitch = pitch;
+	s->info.bIs3D = bIs3D;
+	s->info.bUseSoundsPitchVal = false;
 
-	// Synchronous load so the sound is immediately ready - no ASYNC gap.
-	if (ma_sound_init_from_file(&m_engine, finalPath, 0,
-		nullptr, nullptr, &s->sound) != MA_SUCCESS)
+	if (ma_sound_init_from_file(&m_engine, finalPath, 0, nullptr, nullptr, &s->sound) != MA_SUCCESS)
 	{
 		delete s;
-		return;
+		return nullptr;
 	}
 
-	ma_sound_set_spatialization_enabled(&s->sound, MA_FALSE);
+	ma_sound_set_spatialization_enabled(&s->sound, bIs3D ? MA_TRUE : MA_FALSE);
 	ma_sound_set_looping(&s->sound, MA_TRUE);
 
 	float finalVolume = volume * m_MasterEffectsVolume * SFX_VOLUME_MULTIPLIER;
-	if (finalVolume > SFX_MAX_GAIN) finalVolume = SFX_MAX_GAIN;
+	if (finalVolume > SFX_MAX_GAIN)
+		finalVolume = SFX_MAX_GAIN;
 	ma_sound_set_volume(&s->sound, finalVolume);
 	ma_sound_set_pitch(&s->sound, pitch);
+	if (bIs3D)
+	{
+		ma_sound_set_position(&s->sound, x, y, z);
+	}
 	ma_sound_start(&s->sound);
+	return s;
+}
 
+void SoundEngine::updateLoopingSound(MiniAudioSound* sound, float x, float y, float z, float volume, float pitch)
+{
+	if (sound == nullptr)
+	{
+		return;
+	}
+
+	float finalVolume = volume * m_MasterEffectsVolume * SFX_VOLUME_MULTIPLIER;
+	if (finalVolume > SFX_MAX_GAIN)
+		finalVolume = SFX_MAX_GAIN;
+	ma_sound_set_volume(&sound->sound, finalVolume);
+	ma_sound_set_pitch(&sound->sound, pitch);
+	ma_sound_set_position(&sound->sound, x, y, z);
+}
+
+void SoundEngine::stopLoopingSound(MiniAudioSound* sound)
+{
+	if (sound == nullptr)
+	{
+		return;
+	}
+
+	ma_sound_stop(&sound->sound);
+	ma_sound_uninit(&sound->sound);
+	delete sound;
+}
+
+/////////////////////////////////////////////
+//
+//	
+//  startElytraSound / stopElytraSound
+//  Manages a single persistent looping sound for elytra gliding.
+//  Call startElytraSound every tick while gliding (it no-ops if already running,
+//  just updates volume). Call stopElytraSound when gliding ends.
+//
+//  IMPORTANT: m_elytraLoopingSound is NOT added to m_activeSounds.
+//  The tick() cleanup loop deletes sounds where is_playing()==false.
+//  A looping sound briefly reports is_playing()==false at the loop point,
+//  which would cause tick() to free it and leave m_elytraLoopingSound dangling.
+//
+/////////////////////////////////////////////
+void SoundEngine::startElytraSound(float x, float y, float z, float volume, float pitch)
+{
+	// If already initialized just update volume and pitch - never reinitialize mid-flight.
+	if (m_elytraLoopingSound != nullptr)
+	{
+		updateLoopingSound(m_elytraLoopingSound, x, y, z, volume, pitch);
+		return;
+	}
 	// NOT added to m_activeSounds - tick() cleanup would delete it at loop boundaries.
-	m_elytraLoopingSound = s;
+	m_elytraLoopingSound = startLoopingSound(wchSoundNames[eSoundType_ITEM_ELYTRA_FLYING], x, y, z, volume, pitch, false);
 }
 
 void SoundEngine::stopElytraSound()
 {
 	if (m_elytraLoopingSound == nullptr) return;
-
-	ma_sound_stop(&m_elytraLoopingSound->sound);
-	ma_sound_uninit(&m_elytraLoopingSound->sound);
-	delete m_elytraLoopingSound;
+	stopLoopingSound(m_elytraLoopingSound);
 	m_elytraLoopingSound = nullptr;
 }
 /////////////////////////////////////////////

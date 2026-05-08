@@ -127,6 +127,9 @@ public:
 	void GetSoundName(char *szSoundName,int iSound);
 #endif
     void play(int iSound, float x, float y, float z, float volume, float pitch) override;
+	MiniAudioSound* startLoopingSound(const wstring& name, float x, float y, float z, float volume, float pitch, bool bIs3D = true);
+	void updateLoopingSound(MiniAudioSound* sound, float x, float y, float z, float volume, float pitch);
+	void stopLoopingSound(MiniAudioSound* sound);
 	void startElytraSound(float x, float y, float z, float volume, float pitch);
 	void stopElytraSound();
     void playStreaming(const wstring& name, float x, float y , float z, float volume, float pitch, bool bMusicDelay=true) override;

@@ -16,6 +16,8 @@ UIScene_SettingsAudioMenu::UIScene_SettingsAudioMenu(int iPad, void *initData, U
 
 	m_checkboxCaveSounds.init(L"Cave Sounds",eControl_CaveSounds,(app.GetGameSettings(m_iPad,eGameSetting_CaveSounds)!=0));
 
+	m_checkboxMinecartSounds.init(L"Minecart Sounds",eControl_MinecartSounds,(app.GetGameSettings(m_iPad,eGameSetting_MinecartSounds)!=0));
+
 	doHorizontalResizeCheck();
 
 	if(app.GetLocalPlayerCount()>1)
@@ -123,6 +125,9 @@ void UIScene_SettingsAudioMenu::handleCheckboxToggled(F64 controlId, bool select
 	{
 	case eControl_CaveSounds:
 		app.SetGameSettings(m_iPad, eGameSetting_CaveSounds, selected ? 1 : 0);
+		break;
+	case eControl_MinecartSounds:
+		app.SetGameSettings(m_iPad, eGameSetting_MinecartSounds, selected ? 1 : 0);
 		break;
 	}
 }
