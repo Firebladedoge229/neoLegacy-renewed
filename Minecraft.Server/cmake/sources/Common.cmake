@@ -236,7 +236,6 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_ReinstallMenu.cpp"
   "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_SaveMessage.cpp"
   "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_SettingsAudioMenu.cpp"
-  "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_SettingsControlMenu.cpp"
   "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_SettingsGraphicsMenu.cpp"
   "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_SettingsMenu.cpp"
   "${_MS_SRC}/../Minecraft.Client/Common/UI/UIScene_SettingsOptionsMenu.cpp"

@@ -9,23 +9,29 @@ private:
 	{
 		eControl_DisplayHUD,
 		eControl_DisplayHand,
-		eControl_DisplayDeathMessages,
+		eControl_SensitivityInMenu,
+		eControl_InterfaceOpacity,
+		eControl_ShowTooltips,
 		eControl_DisplayAnimatedCharacter,
-		eControl_Splitscreen,
+		eControl_InGameGamertags,
 		eControl_ShowSplitscreenGamertags,
 		eControl_ShowClassicCrafting,
 		eControl_UISize,
 		eControl_UISizeSplitscreen
 	};
 
-	UIControl_CheckBox m_checkboxDisplayHUD, m_checkboxDisplayHand, m_checkboxDisplayDeathMessages, m_checkboxDisplayAnimatedCharacter, m_checkboxSplitscreen, m_checkboxShowSplitscreenGamertags, m_checkboxShowClassicCrafting; // Checkboxes
-	UIControl_Slider m_sliderUISize, m_sliderUISizeSplitscreen; // Sliders
+	UIControl_CheckBox m_checkboxDisplayHUD, m_checkboxDisplayHand, m_checkboxDisplayAnimatedCharacter, m_checkboxShowSplitscreenGamertags, m_checkboxShowClassicCrafting, m_checkboxShowTooltips, m_checkboxInGameGamertags; // Checkboxes
+	UIControl_Slider m_sliderInterfaceOpacity, m_sliderSensitivityInMenu, m_sliderUISize, m_sliderUISizeSplitscreen; // Sliders
 	UI_BEGIN_MAP_ELEMENTS_AND_NAMES(UIScene)
 		UI_MAP_ELEMENT( m_checkboxDisplayHUD, "DisplayHUD")
 		UI_MAP_ELEMENT( m_checkboxDisplayHand, "DisplayHand")
-		UI_MAP_ELEMENT( m_checkboxDisplayDeathMessages, "DisplayDeathMessages")
+		UI_MAP_ELEMENT( m_sliderInterfaceOpacity, "InterfaceOpacity")
+
+		UI_MAP_ELEMENT( m_checkboxShowTooltips, "ShowTooltips")
 		UI_MAP_ELEMENT( m_checkboxDisplayAnimatedCharacter, "DisplayAnimatedCharacter")
-		UI_MAP_ELEMENT( m_checkboxSplitscreen, "Splitscreen")
+		UI_MAP_ELEMENT( m_sliderSensitivityInMenu, "SensitivityInMenu")
+		
+		UI_MAP_ELEMENT( m_checkboxInGameGamertags, "InGameGamertags")
 		UI_MAP_ELEMENT( m_checkboxShowSplitscreenGamertags, "ShowSplitscreenGamertags")
 		UI_MAP_ELEMENT(m_checkboxShowClassicCrafting, "ShowClassicCrafting")
 

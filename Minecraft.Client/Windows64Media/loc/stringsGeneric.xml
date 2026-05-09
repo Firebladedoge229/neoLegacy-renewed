@@ -7526,7 +7526,7 @@ Would you like to install the mash-up pack or texture pack now?</value>
 	</data>	
 
 	<data name="IDS_CHECKBOX_VERTICAL_SPLIT_SCREEN">
-		<value>2 Player Split-screen Vertical</value>
+		<value>Vertical Splitscreen</value>
 	</data>	
 
 	<data name="IDS_DONE">

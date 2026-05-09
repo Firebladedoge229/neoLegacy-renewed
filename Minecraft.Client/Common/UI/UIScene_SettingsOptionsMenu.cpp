@@ -24,31 +24,17 @@ int UIScene_SettingsOptionsMenu::m_iDifficultyTitleSettingA[4]=
 
 UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initData, UILayer *parentLayer) : UIScene(iPad, parentLayer)
 {
-	m_bNavigateToLanguageSelector = false;
+	// m_bNavigateToLanguageSelector = false;
 
 	// Setup all the Iggy references we need for this scene
 	initialiseMovie();
 	
 	m_bNotInGame=(Minecraft::GetInstance()->level==nullptr);
 
+	m_checkboxVerticalSplitscreen.init(app.GetString(IDS_CHECKBOX_VERTICAL_SPLIT_SCREEN),eControl_VerticalSplitscreen,(app.GetGameSettings(m_iPad,eGameSetting_SplitScreenVertical)!=0));
 	m_checkboxViewBob.init(IDS_VIEW_BOBBING,eControl_ViewBob,(app.GetGameSettings(m_iPad,eGameSetting_ViewBob)!=0));
 	m_checkboxShowHints.init(IDS_HINTS,eControl_ShowHints,(app.GetGameSettings(m_iPad,eGameSetting_Hints)!=0));
-	m_checkboxShowTooltips.init(IDS_IN_GAME_TOOLTIPS,eControl_ShowTooltips,(app.GetGameSettings(m_iPad,eGameSetting_Tooltips)!=0));
-	m_checkboxInGameGamertags.init(IDS_IN_GAME_GAMERTAGS,eControl_InGameGamertags,(app.GetGameSettings(m_iPad,eGameSetting_GamertagsVisible)!=0));
-
-	// check if we should display the mash-up option
-	if(m_bNotInGame && app.GetMashupPackWorlds(m_iPad)!=0xFFFFFFFF)
-	{
-		// the mash-up option is needed
-		m_bMashUpWorldsUnhideOption=true;
-		m_checkboxMashupWorlds.init(IDS_UNHIDE_MASHUP_WORLDS,eControl_ShowMashUpWorlds,false);
-	}
-	else
-	{
-		//m_checkboxMashupWorlds.init(L"",eControl_ShowMashUpWorlds,false);
-		removeControl(&m_checkboxMashupWorlds, true);
-		m_bMashUpWorldsUnhideOption=false;
-	}
+	m_checkboxDeathMessages.init(app.GetString(IDS_CHECKBOX_DEATH_MESSAGES),eControl_DeathMessages,(app.GetGameSettings(m_iPad,eGameSetting_DeathMessages)!=0));
 
 	unsigned char ucValue=app.GetGameSettings(m_iPad,eGameSetting_Autosave);
 
@@ -64,9 +50,13 @@ UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initDat
 			swprintf( autosaveLabels[i], 256, L"%ls: %d %ls", app.GetString( IDS_SLIDER_AUTOSAVE ),i*15, app.GetString( IDS_MINUTES ));		
 		}
 
-	}
+	} 
 	m_sliderAutosave.setAllPossibleLabels(9,autosaveLabels);
 	m_sliderAutosave.init(autosaveLabels[ucValue],eControl_Autosave,0,8,ucValue);
+
+	WCHAR TempString[256];
+	swprintf( (WCHAR *)TempString, 256, L"%ls: %d%%", app.GetString( IDS_SLIDER_SENSITIVITY_INGAME ),app.GetGameSettings(m_iPad,eGameSetting_Sensitivity_InGame));	
+	m_sliderSensitivity_InGame.init(TempString,eControl_Sensitivity_InGame,0,200,app.GetGameSettings(m_iPad,eGameSetting_Sensitivity_InGame));
 
 #if defined(_XBOX_ONE) || defined(__ORBIS__)
 	removeControl(&m_sliderAutosave,true);
@@ -97,7 +87,7 @@ UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initDat
 	// only the primary player gets to change the autosave and difficulty settings
 	bool bRemoveDifficulty=false;
 	bool bRemoveAutosave=false;
-	bool bRemoveInGameGamertags=false;
+	// bool bRemoveInGameGamertags=false;
 	
 	bool bNotInGame=(Minecraft::GetInstance()->level==nullptr);
 	bool bPrimaryPlayer = ProfileManager.GetPrimaryPad()==m_iPad;
@@ -105,7 +95,7 @@ UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initDat
 	{
 		bRemoveDifficulty=true;
 		bRemoveAutosave=true;
-		bRemoveInGameGamertags=true;
+		// bRemoveInGameGamertags=true;
 	}
 
 	if(!bNotInGame) // in the game
@@ -114,7 +104,7 @@ UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initDat
 		if(!g_NetworkManager.IsHost())
 		{
 			bRemoveAutosave=true;
-			bRemoveInGameGamertags=true;	
+			// bRemoveInGameGamertags=true;	
 		}
 	}
 	if(bRemoveDifficulty)
@@ -128,10 +118,10 @@ UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initDat
 		removeControl(&m_sliderAutosave, true);
 	}
 
-	if(bRemoveInGameGamertags)
-	{
-		removeControl(&m_checkboxInGameGamertags, true);
-	}
+	// if(bRemoveInGameGamertags)
+	// {
+	// 	removeControl(&m_checkboxInGameGamertags, true);
+	// }
 
 	// 4J-JEV: Changing languages in-game will produce many a bug.
 	// MGH - disabled the language select for the patch build, we'll re-enable afterwards
@@ -151,6 +141,19 @@ UIScene_SettingsOptionsMenu::UIScene_SettingsOptionsMenu(int iPad, void *initDat
 
 	doHorizontalResizeCheck();
 
+	bool bInGame=(Minecraft::GetInstance()->level!=nullptr);
+
+	// if we're not in the game, we need to use basescene 0 
+	if(bInGame)
+	{
+		// If the game has started, then you need to be the host to change the in-game gamertags
+		if(!bPrimaryPlayer)
+		{	
+			// hide things we don't want the splitscreen player changing
+			removeControl(&m_checkboxVerticalSplitscreen, true);
+		}
+	}
+
 	if(app.GetLocalPlayerCount()>1)
 	{
 #if TO_BE_IMPLEMENTED
@@ -169,12 +172,13 @@ void UIScene_SettingsOptionsMenu::tick()
 {
 	UIScene::tick();
 
-	if (m_bNavigateToLanguageSelector)
-	{
-		m_bNavigateToLanguageSelector = false;
-		setGameSettings();
-		ui.NavigateToScene(m_iPad, eUIScene_LanguageSelector);
-	}
+	
+	// if (m_bNavigateToLanguageSelector)
+	// {
+		// m_bNavigateToLanguageSelector = false;
+		// setGameSettings();
+		// ui.NavigateToScene(m_iPad, eUIScene_LanguageSelector);
+	// }
 }
 
 wstring UIScene_SettingsOptionsMenu::getMoviePath()
@@ -245,33 +249,19 @@ void UIScene_SettingsOptionsMenu::handlePress(F64 controlId, F64 childId)
 
 	switch(static_cast<int>(controlId))
 	{
-	case eControl_Languages:
-		m_bNavigateToLanguageSelector = true;
-		break;
+	// case eControl_Languages:
+	//	m_bNavigateToLanguageSelector = true;
+	//	break;
 	}
 }
 
 void UIScene_SettingsOptionsMenu::handleReload()
 {
-	m_bNavigateToLanguageSelector = false;
+	// m_bNavigateToLanguageSelector = false;
 
 	m_checkboxViewBob.init(IDS_VIEW_BOBBING,eControl_ViewBob,(app.GetGameSettings(m_iPad,eGameSetting_ViewBob)!=0));
 	m_checkboxShowHints.init(IDS_HINTS,eControl_ShowHints,(app.GetGameSettings(m_iPad,eGameSetting_Hints)!=0));
-	m_checkboxShowTooltips.init(IDS_IN_GAME_TOOLTIPS,eControl_ShowTooltips,(app.GetGameSettings(m_iPad,eGameSetting_Tooltips)!=0));
-	m_checkboxInGameGamertags.init(IDS_IN_GAME_GAMERTAGS,eControl_InGameGamertags,(app.GetGameSettings(m_iPad,eGameSetting_GamertagsVisible)!=0));
-
-	// check if we should display the mash-up option
-	if(m_bNotInGame && app.GetMashupPackWorlds(m_iPad)!=0xFFFFFFFF)
-	{
-		// the mash-up option is needed
-		m_bMashUpWorldsUnhideOption=true;
-	}
-	else
-	{
-		//m_checkboxMashupWorlds.init(L"",eControl_ShowMashUpWorlds,false);
-		removeControl(&m_checkboxMashupWorlds, true);
-		m_bMashUpWorldsUnhideOption=false;
-	}
+	m_checkboxDeathMessages.init(IDS_CHECKBOX_DEATH_MESSAGES,eControl_DeathMessages,(app.GetGameSettings(m_iPad,eGameSetting_DeathMessages)!=0));
 
 	unsigned char ucValue=app.GetGameSettings(m_iPad,eGameSetting_Autosave);
 
@@ -322,7 +312,7 @@ void UIScene_SettingsOptionsMenu::handleReload()
 	// only the primary player gets to change the autosave and difficulty settings
 	bool bRemoveDifficulty=false;
 	bool bRemoveAutosave=false;
-	bool bRemoveInGameGamertags=false;
+	// bool bRemoveInGameGamertags=false;
 	
 	bool bNotInGame=(Minecraft::GetInstance()->level==nullptr);
 	bool bPrimaryPlayer = ProfileManager.GetPrimaryPad()==m_iPad;
@@ -330,7 +320,7 @@ void UIScene_SettingsOptionsMenu::handleReload()
 	{
 		bRemoveDifficulty=true;
 		bRemoveAutosave=true;
-		bRemoveInGameGamertags=true;
+		// bRemoveInGameGamertags=true;
 	}
 
 	if(!bNotInGame) // in the game
@@ -339,7 +329,7 @@ void UIScene_SettingsOptionsMenu::handleReload()
 		if(!g_NetworkManager.IsHost())
 		{
 			bRemoveAutosave=true;
-			bRemoveInGameGamertags=true;	
+			// bRemoveInGameGamertags=true;	
 		}
 	}
 	if(bRemoveDifficulty)
@@ -351,11 +341,6 @@ void UIScene_SettingsOptionsMenu::handleReload()
 	if(bRemoveAutosave)
 	{
 		removeControl(&m_sliderAutosave, true);
-	}
-
-	if(bRemoveInGameGamertags)
-	{
-		removeControl(&m_checkboxInGameGamertags, true);
 	}
 
 	// MGH - disabled the language select for the patch build, we'll re-enable afterwards
@@ -379,6 +364,7 @@ void UIScene_SettingsOptionsMenu::handleReload()
 void UIScene_SettingsOptionsMenu::handleSliderMove(F64 sliderId, F64 currentValue)
 {
 	int value = static_cast<int>(currentValue);
+	WCHAR TempString[256];
 	switch(static_cast<int>(sliderId))
 	{
 	case eControl_Autosave:
@@ -387,6 +373,14 @@ void UIScene_SettingsOptionsMenu::handleSliderMove(F64 sliderId, F64 currentValu
 		app.SetGameSettings(m_iPad,eGameSetting_Autosave,value);
 		// Update the autosave timer
 		app.SetAutosaveTimerTime();
+
+		break;
+	case eControl_Sensitivity_InGame:
+		m_sliderSensitivity_InGame.handleSliderMove(value);
+		
+		app.SetGameSettings(m_iPad,eGameSetting_Sensitivity_InGame,value);
+		swprintf( (WCHAR *)TempString, 256, L"%ls: %d%%", app.GetString( IDS_SLIDER_SENSITIVITY_INGAME ),value);	
+		m_sliderSensitivity_InGame.setLabel(TempString);
 
 		break;
 	case eControl_Difficulty:
@@ -412,16 +406,30 @@ void UIScene_SettingsOptionsMenu::setGameSettings()
 {
 	// check the checkboxes
 	app.SetGameSettings(m_iPad,eGameSetting_ViewBob,m_checkboxViewBob.IsChecked()?1:0);
-	app.SetGameSettings(m_iPad,eGameSetting_GamertagsVisible,m_checkboxInGameGamertags.IsChecked()?1:0);
 	app.SetGameSettings(m_iPad,eGameSetting_Hints,m_checkboxShowHints.IsChecked()?1:0);
-	app.SetGameSettings(m_iPad,eGameSetting_Tooltips,m_checkboxShowTooltips.IsChecked()?1:0);
+	app.SetGameSettings(m_iPad,eGameSetting_DeathMessages,m_checkboxDeathMessages.IsChecked()?1:0);
 
-	// the mashup option will only be shown if some worlds have been previously hidden
-	if(m_bMashUpWorldsUnhideOption && m_checkboxMashupWorlds.IsChecked())
+	if(app.GetGameSettings(m_iPad,eGameSetting_SplitScreenVertical)!=(m_checkboxVerticalSplitscreen.IsChecked()?1:0))
 	{
-		// unhide all worlds
-		app.EnableMashupPackWorlds(m_iPad);
+		// changed
+		app.SetGameSettings(m_iPad,eGameSetting_SplitScreenVertical,m_checkboxVerticalSplitscreen.IsChecked()?1:0);
+		
+		// close the xui scenes, so we don't have the navigate backed to menu at the wrong place
+		if(app.GetLocalPlayerCount()==2)
+		{
+			ui.CloseAllPlayersScenes();
+		}
+		else
+		{
+			navigateBack();
+		}
 	}
+	else
+	{
+		navigateBack();
+	}
+	// handled = true;
+	// if the splitscreen vertical/horizontal has changed, need to update the scenes
 
 	// 4J-PB - don't action changes here or we might write to the profile on backing out here and then get a change in the settings all, and write again on backing out there
 	//app.CheckGameSettingsChanged(true,pInputData->UserIndex);

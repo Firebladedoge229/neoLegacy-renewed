@@ -70,7 +70,6 @@ UIScene_SettingsGraphicsMenu::UIScene_SettingsGraphicsMenu(int iPad, void *initD
 	m_checkboxVSync.init(L"VSync",eControl_VSync,(app.GetGameSettings(m_iPad,eGameSetting_VSync)!=0));
 	m_checkboxExclusiveFullscreen.init(L"Fullscreen",eControl_ExclusiveFullscreen,(app.GetGameSettings(m_iPad,eGameSetting_ExclusiveFullscreen)!=0));
 
-
 	WCHAR TempString[256];
 
 	swprintf(TempString, 256, L"Render Distance: %d",app.GetGameSettings(m_iPad,eGameSetting_RenderDistance));	
@@ -83,9 +82,6 @@ UIScene_SettingsGraphicsMenu::UIScene_SettingsGraphicsMenu(int iPad, void *initD
 	const int initialFovDeg = sliderValueToFov(initialFovSlider);
 	swprintf(TempString, 256, L"FOV: %d", initialFovDeg);
 	m_sliderFOV.init(TempString, eControl_FOV, 0, FOV_SLIDER_MAX, initialFovSlider);
-	
-	swprintf( TempString, 256, L"%ls: %d%%", app.GetString( IDS_SLIDER_INTERFACEOPACITY ),app.GetGameSettings(m_iPad,eGameSetting_InterfaceOpacity));	
-	m_sliderInterfaceOpacity.init(TempString,eControl_InterfaceOpacity,0,100,app.GetGameSettings(m_iPad,eGameSetting_InterfaceOpacity));
 
 	doHorizontalResizeCheck();
 
@@ -260,15 +256,6 @@ void UIScene_SettingsGraphicsMenu::handleSliderMove(F64 sliderId, F64 currentVal
 			swprintf(TempString, 256, L"FOV: %d", fovValue);
 			m_sliderFOV.setLabel(TempString);
 		}
-		break;
-
-	case eControl_InterfaceOpacity:
-		m_sliderInterfaceOpacity.handleSliderMove(value);
-		
-		app.SetGameSettings(m_iPad,eGameSetting_InterfaceOpacity,value);
-		swprintf( TempString, 256, L"%ls: %d%%", app.GetString( IDS_SLIDER_INTERFACEOPACITY ),value);	
-		m_sliderInterfaceOpacity.setLabel(TempString);
-
 		break;
 	}
 }
