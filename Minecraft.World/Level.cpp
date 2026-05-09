@@ -3322,7 +3322,7 @@ void Level::tickClientSideTiles(int xo, int zo, LevelChunk *lc)
 			if (player != nullptr && player->distanceToSqr(x + 0.5, y + 0.5, z + 0.5) > 2 * 2)
 			{
 				// check for cave sound functionality
-				if (app.GetGameSettings(player->entityId, eGameSetting_CaveSounds))
+				if (app.GetGameSettings(static_cast<int>(player->getPlayerIndex()), eGameSetting_CaveSounds))
 				{
 					// 4J-PB - Fixed issue with cave audio event having 2 sounds at 192k
 #ifdef _XBOX

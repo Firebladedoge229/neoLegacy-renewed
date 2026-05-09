@@ -2560,6 +2560,11 @@ unsigned char CMinecraftApp::GetGameSettings(eGameSetting eVal)
 
 unsigned char CMinecraftApp::GetGameSettings(int iPad,eGameSetting eVal)
 {
+	if (iPad < 0 || iPad >= XUSER_MAX_COUNT || GameSettingsA[iPad] == nullptr)
+	{
+		return 0;
+	}
+
 	switch(eVal)
 	{
 	case eGameSetting_MusicVolume:
