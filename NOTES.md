@@ -13,5 +13,3 @@
 
 # Download
 Get the latest build from [LCE Emerald Launcher](https://github.com/LCE-Hub/LCE-Emerald-Launcher/releases) or the upcoming LC Launcher.
-
-<!--neo: this is very barebones lmao -->
