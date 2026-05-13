@@ -200,6 +200,8 @@ void PreStitchedTextureMap::stitch()
 
 void PreStitchedTextureMap::makeTextureAnimated(TexturePack *texturePack, StitchedTexture *tex)
 {
+    
+
 	if(!tex->hasOwnData())
 	{
 		animatedTextures.push_back(tex);
@@ -212,14 +214,17 @@ void PreStitchedTextureMap::makeTextureAnimated(TexturePack *texturePack, Stitch
 
 	if(!animString.empty())
 	{
+        
 		wstring filename = path + textureFileName + extension;
 
 		// TODO: [EB] Put the frames into a proper object, not this inside out hack
-		vector<Texture *> *frames = TextureManager::getInstance()->createTextures(filename, m_mipMap);
+		vector<Texture *> *frames = TextureManager::getInstance()->createTextures(filename, m_mipMap, true);
 		if (frames == nullptr || frames->empty())
 		{
 			return; // Couldn't load a texture, skip it
 		}
+
+        
 
 		Texture *first = frames->at(0);
 
@@ -259,7 +264,10 @@ void PreStitchedTextureMap::cycleAnimationFrames()
 {
 	for(StitchedTexture* texture : animatedTextures)
 	{
-		texture->cycleFrames();
+		if (texture != nullptr && texture->getFrames() > 0)
+		{
+			texture->cycleFrames();
+		}
 	}
 }
 

@@ -192,6 +192,11 @@ int StitchedTexture::getSourceHeight() const
 
 void StitchedTexture::cycleFrames()
 {
+	if (frames == nullptr || frames->empty())
+	{
+		return;
+	}
+
 	if (frameOverride != nullptr)
 	{
 		pair<int, int> current = frameOverride->at(frame);
