@@ -110,6 +110,7 @@ enum EGameHostOptionWorldSize
 #define GAMESETTING_CLASSICCRAFTING						0x04000000
 #define GAMESETTING_CAVESOUNDS							0x08000000
 #define GAMESETTING_MINECARTSOUNDS						0x10000000
+#define GAMESETTING_HIDESAVESIZEBAR			            0x20000000
 
 
 // defines for languages

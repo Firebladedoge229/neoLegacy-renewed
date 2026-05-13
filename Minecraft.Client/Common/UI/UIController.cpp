@@ -615,6 +615,8 @@ void UIController::loadSkins()
 	//used these as skin.swf and skinInGame.swf it breaks some other things
 	m_iggyLibraries[eLibrary_LCDefault] = loadSkin(L"skinLC.swf", L"skinLC.swf");
 	m_iggyLibraries[eLibrary_LCInGame] = loadSkin(L"skinInGameLC.swf", L"skinInGameLC.swf");
+	m_iggyLibraries[eLibrary_LCGraphics] = loadSkin(L"skinGraphicsLC.swf", L"skinGraphicsLC.swf");
+	m_iggyLibraries[eLibrary_LCLabels] = loadSkin(L"skinLabelsLC.swf", L"skinLabelsLC.swf");
 
 	// Some 1080p menu ports (such as LoadCreateJoin) may import DR-specific HD
 	// libraries by distinct names. Load them opportunistically when present so
@@ -1487,10 +1489,16 @@ void UIController::handleKeyPress(unsigned int iPad, unsigned int key)
 			// hovering a horizontal list (e.g. TexturePackList), UP/DOWN otherwise.
 			if (pressed && g_KBMInput.IsKBMActive())
 			{
-				if (m_bMouseHoverHorizontalList)
-					key = (key == ACTION_MENU_OTHER_STICK_UP) ? ACTION_MENU_LEFT : ACTION_MENU_RIGHT;
-				else
-					key = (key == ACTION_MENU_OTHER_STICK_UP) ? ACTION_MENU_UP : ACTION_MENU_DOWN;
+				UIScene* pTopScene = GetTopScene(0); // using 0 as default pad for KBM
+				bool isJoinMenu = pTopScene && pTopScene->getSceneType() == eUIScene_JoinMenu;
+
+				if (!isJoinMenu)
+				{
+					if (m_bMouseHoverHorizontalList)
+						key = (key == ACTION_MENU_OTHER_STICK_UP) ? ACTION_MENU_LEFT : ACTION_MENU_RIGHT;
+					else
+						key = (key == ACTION_MENU_OTHER_STICK_UP) ? ACTION_MENU_UP : ACTION_MENU_DOWN;
+				}
 			}
 		}
 	}

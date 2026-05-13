@@ -105,6 +105,8 @@ private:
 
 		eLibrary_LCDefault,
 		eLibrary_LCInGame,
+		eLibrary_LCGraphics,
+		eLibrary_LCLabels,
 
 #if defined(_WINDOWS64)
 		// Non-HD skin libraries needed by 720p/480p scene SWFs.

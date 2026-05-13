@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "../App_enums.h"
 #include "UI.h"
 #include "UIScene_SettingsUIMenu.h"
 
@@ -18,6 +19,8 @@ UIScene_SettingsUIMenu::UIScene_SettingsUIMenu(int iPad, void *initData, UILayer
 	m_checkboxInGameGamertags.init(IDS_IN_GAME_GAMERTAGS,eControl_InGameGamertags,(app.GetGameSettings(m_iPad,eGameSetting_GamertagsVisible)!=0));
 	m_checkboxShowSplitscreenGamertags.init(app.GetString(IDS_CHECKBOX_DISPLAY_SPLITSCREENGAMERTAGS),eControl_ShowSplitscreenGamertags,(app.GetGameSettings(m_iPad,eGameSetting_DisplaySplitscreenGamertags)!=0));
 	m_checkboxShowClassicCrafting.init(app.GetString(IDS_CHECKBOX_CLASSICCRAFTING), eControl_ShowClassicCrafting, (app.GetGameSettings(m_iPad, eGameSetting_ClassicCrafting) != 0));
+	// label is hardcoded for now (no IDS_* yet)
+	m_checkboxHideLoadCreateJoinSaveSizeBar.init(L"Hide world disk space bar", eControl_HideSaveSizeBar, (app.GetGameSettings(m_iPad, eGameSetting_HideSaveSizeBar) != 0));
 
 	WCHAR TempString[256];
 
@@ -123,6 +126,7 @@ void UIScene_SettingsUIMenu::handleInput(int iPad, int key, bool repeat, bool pr
 			app.SetGameSettings(m_iPad,eGameSetting_GamertagsVisible,m_checkboxInGameGamertags.IsChecked()?1:0);
 			app.SetGameSettings(m_iPad,eGameSetting_DisplaySplitscreenGamertags,m_checkboxShowSplitscreenGamertags.IsChecked()?1:0);
 			app.SetGameSettings(m_iPad, eGameSetting_ClassicCrafting, m_checkboxShowClassicCrafting.IsChecked() ? 1 : 0);
+			app.SetGameSettings(m_iPad, eGameSetting_HideSaveSizeBar, m_checkboxHideLoadCreateJoinSaveSizeBar.IsChecked() ? 1 : 0);
 
 			navigateBack();
 		}

@@ -1570,6 +1570,32 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	const Win64LaunchOptions launchOptions = ParseLaunchOptions();
 	ApplyScreenMode(launchOptions.screenMode);
 
+	// load resolution from resolution.txt
+	char resPath[MAX_PATH] = {};
+	_snprintf_s(resPath, sizeof(resPath), _TRUNCATE, "%sresolution.txt", exePath);
+	FILE *fRes = nullptr;
+	if (fopen_s(&fRes, resPath, "r") == 0 && fRes)
+	{
+		char resBuf[128] = {};
+		if (fgets(resBuf, sizeof(resBuf), fRes))
+		{
+			int w = 0, h = 0;
+			if (sscanf_s(resBuf, "%dx%d", &w, &h) == 2 && w > 0 && h > 0)
+			{
+				g_rScreenWidth = w;
+				g_rScreenHeight = h;
+				g_iScreenWidth = w;
+				g_iScreenHeight = h;
+			}
+			else
+			{
+				if (strstr(resBuf, "1080")) { g_rScreenWidth = 1920; g_rScreenHeight = 1080; g_iScreenWidth = 1920; g_iScreenHeight = 1080; }
+				else if (strstr(resBuf, "720")) { g_rScreenWidth = 1280; g_rScreenHeight = 720; g_iScreenWidth = 1280; g_iScreenHeight = 720; }
+			}
+		}
+		fclose(fRes);
+	}
+
 	// Ensure uid.dat exists from startup (before any multiplayer/login path).
 	Win64Xuid::ResolvePersistentXuid();
 
