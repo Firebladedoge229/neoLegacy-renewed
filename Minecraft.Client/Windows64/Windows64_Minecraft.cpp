@@ -1504,7 +1504,7 @@ static Minecraft* InitialiseMinecraftRuntime()
 		return nullptr;
 
 	app.InitGameSettings();
-	app.InitialiseTips();
+	app.InitialiseTips();    
 
 	return pMinecraft;
 }
@@ -1759,6 +1759,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		return 1;
 	}
 	g_bResizeReady = true;
+
+	ui.ReloadSkin();
 
 	//app.TemporaryCreateGameStart();
 

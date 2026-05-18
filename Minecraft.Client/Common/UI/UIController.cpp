@@ -186,6 +186,50 @@ static void RADLINK DeallocateFunction ( void * alloc_callback_user_data , void 
 	LeaveCriticalSection(&controller->m_Allocatorlock);
 }
 
+#ifdef _WINDOWS64
+static wstring GetControlTypeSkinPath(int controlType, bool hd)
+{
+	const wchar_t *skinName = L"PS4";
+
+	switch(controlType)
+	{
+	case 0:
+		skinName = L"windows";
+		break;
+	case 1:
+		skinName = L"xboxOne";
+		break;
+	case 2:
+		skinName = L"xbox360";
+		break;
+	case 3:
+		skinName = L"vita";
+		break;
+	case 4:
+		skinName = L"PS3";
+		break;
+	case 5:
+		skinName = L"PS4";
+		break;
+	case 6:
+		skinName = L"WiiU";
+		break;
+	case 7:
+		skinName = L"Switch";
+		break;
+	default:
+		break;
+	}
+
+	if(hd)
+	{
+		return wstring(L"Graphics\\ControlType\\HD\\") + skinName + L"HD.swf";
+	}
+
+	return wstring(L"Graphics\\ControlType\\") + skinName + L".swf";
+}
+#endif
+
 UIController::UIController()
 {
 	m_uiDebugConsole = nullptr;
@@ -582,10 +626,26 @@ void UIController::loadSkins()
 	m_iggyLibraries[eLibrary_Default] = loadSkin(L"skin.swf", L"skin.swf");
 
 #elif defined _WINDOWS64
-	// HD platform skin — required by skinHD*.swf (1080p scene SWFs)
-	m_iggyLibraries[eLibrary_Platform] = loadSkin(L"skinHDWin.swf", L"platformskinHD.swf");
-	// Non-HD platform skin — required by skin*.swf (720p/480p scene SWFs)
-	m_iggyLibraries[eLibraryFallback_Platform] = loadSkin(L"skinWin.swf", L"platformskin.swf");
+	// emulate control type skins
+	const int controlType = app.GetGameSettings(ProfileManager.GetPrimaryPad(), eGameSetting_ControlType);
+	wstring platformSkinHD = GetControlTypeSkinPath(controlType, true);
+	wstring platformSkin = GetControlTypeSkinPath(controlType, false);
+
+	m_iggyLibraries[eLibrary_Platform] = loadSkin(platformSkinHD, L"platformskinHD.swf");
+	if(m_iggyLibraries[eLibrary_Platform] == IGGY_INVALID_LIBRARY)
+	{
+		m_iggyLibraries[eLibrary_Platform] = loadSkin(platformSkin, L"platformskinHD.swf");
+	}
+
+	m_iggyLibraries[eLibraryFallback_Platform] = loadSkin(platformSkin, L"platformskin.swf");
+	if(m_iggyLibraries[eLibraryFallback_Platform] == IGGY_INVALID_LIBRARY)
+	{
+		m_iggyLibraries[eLibraryFallback_Platform] = loadSkin(L"Graphics\\ControlType\\windows.swf", L"platformskin.swf");
+	}
+	if(m_iggyLibraries[eLibrary_Platform] == IGGY_INVALID_LIBRARY)
+	{
+		m_iggyLibraries[eLibrary_Platform] = loadSkin(L"Graphics\\ControlType\\HD\\windowsHD.swf", L"platformskin.swf");
+	}
 
 	// Non-HD skin set (720p/480p scenes import these)
 	m_iggyLibraries[eLibraryFallback_GraphicsDefault] = loadSkin(L"skinGraphics.swf", L"skinGraphics.swf");
@@ -2643,6 +2703,11 @@ void UIController::DisplayGamertag(unsigned int iPad, bool show)
 
 void UIController::SetSelectedItem(unsigned int iPad, const wstring &name)
 {
+	// control type settings are already disabled whilst in-game
+	// this just serves as an additional check just incase the removal of the option doesnt work for some reason
+	if(IsReloadingSkin())
+		return;
+
 	EUIGroup group;
 
 	if( app.GetGameStarted() )
@@ -2656,7 +2721,12 @@ void UIController::SetSelectedItem(unsigned int iPad, const wstring &name)
 		group = eUIGroup_Fullscreen;
 	}
 	bool handled = false;
-	if(m_groups[static_cast<int>(group)]->getHUD()) m_groups[static_cast<int>(group)]->getHUD()->SetSelectedLabel(name);
+	
+	auto pHUD = m_groups[static_cast<int>(group)]->getHUD();
+	if(pHUD && pHUD->hasMovie())
+	{
+		pHUD->SetSelectedLabel(name);
+	}
 }
 
 void UIController::UpdateSelectedItemPos(unsigned int iPad)

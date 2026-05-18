@@ -224,7 +224,6 @@ void UIScene_SettingsOptionsMenu::handleInput(int iPad, int key, bool repeat, bo
 		if(pressed)
 		{
 			setGameSettings();
-			navigateBack();
 		}
 		break;
 	case ACTION_MENU_OK:

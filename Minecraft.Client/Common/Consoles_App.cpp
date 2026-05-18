@@ -2138,6 +2138,14 @@ void CMinecraftApp::SetGameSettings(int iPad,eGameSetting eVal,unsigned char ucV
 			GameSettingsA[iPad]->bSettingsChanged=true;
 		}
 		break;
+	case eGameSetting_ControlType:
+		if((GameSettingsA[iPad]->uiBitmaskValues & 0x00070000) != ((ucVal & 0x07) << 16))
+		{
+			GameSettingsA[iPad]->uiBitmaskValues &= ~0x00070000;
+			GameSettingsA[iPad]->uiBitmaskValues |= (ucVal & 0x07) << 16;
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
 	case eGameSetting_SplitScreenVertical:
 		if((GameSettingsA[iPad]->usBitmaskValues&0x0100)!=((ucVal&0x01)<<8))
 		{
@@ -2724,6 +2732,8 @@ unsigned char CMinecraftApp::GetGameSettings(int iPad,eGameSetting eVal)
 
 	case eGameSetting_ExclusiveFullscreen:
 		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_EXCLUSIVEFULLSCREEN)>>25;
+	case eGameSetting_ControlType:
+		return (GameSettingsA[iPad]->uiBitmaskValues & 0x00070000) >> 16;
 
 	}
 	return 0;

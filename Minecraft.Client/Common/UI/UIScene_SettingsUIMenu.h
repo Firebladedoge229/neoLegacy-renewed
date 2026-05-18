@@ -4,6 +4,8 @@
 
 class UIScene_SettingsUIMenu : public UIScene
 {
+protected:
+	static int m_iControlTypeSettingA[8];
 private:
 	enum EControls
 	{
@@ -18,11 +20,13 @@ private:
 		eControl_ShowClassicCrafting,
 		eControl_HideSaveSizeBar,
 		eControl_UISize,
-		eControl_UISizeSplitscreen
+		eControl_UISizeSplitscreen,
+		eControl_ControlType,
 	};
 
 	UIControl_CheckBox m_checkboxDisplayHUD, m_checkboxDisplayHand, m_checkboxDisplayAnimatedCharacter, m_checkboxShowSplitscreenGamertags, m_checkboxShowClassicCrafting, m_checkboxShowTooltips, m_checkboxInGameGamertags, m_checkboxHideLoadCreateJoinSaveSizeBar; // Checkboxes
-	UIControl_Slider m_sliderInterfaceOpacity, m_sliderSensitivityInMenu, m_sliderUISize, m_sliderUISizeSplitscreen; // Sliders
+	UIControl_Slider m_sliderInterfaceOpacity, m_sliderSensitivityInMenu, m_sliderUISize, m_sliderUISizeSplitscreen, m_sliderControlType; // Sliders
+	bool m_bControlTypeChanged;
 	UI_BEGIN_MAP_ELEMENTS_AND_NAMES(UIScene)
 		UI_MAP_ELEMENT( m_checkboxDisplayHUD, "DisplayHUD")
 		UI_MAP_ELEMENT( m_checkboxDisplayHand, "DisplayHand")
@@ -39,6 +43,7 @@ private:
 
 		UI_MAP_ELEMENT( m_sliderUISize, "UISize")
 		UI_MAP_ELEMENT( m_sliderUISizeSplitscreen, "UISizeSplitscreen")
+		UI_MAP_ELEMENT( m_sliderControlType, "ControlType")
 	UI_END_MAP_ELEMENTS_AND_NAMES()
 
 	bool m_bNotInGame;

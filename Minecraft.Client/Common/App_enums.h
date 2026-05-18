@@ -186,6 +186,7 @@ enum eGameSetting
 	eGameSetting_ClassicCrafting,
 	eGameSetting_CaveSounds,
 	eGameSetting_MinecartSounds,
+	eGameSetting_ControlType,
 	// if enabled hides the save size bar in loadcreatejoinmenu (load tab)
 	eGameSetting_HideSaveSizeBar,
 };

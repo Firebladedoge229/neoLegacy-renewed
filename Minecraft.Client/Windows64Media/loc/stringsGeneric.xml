@@ -6104,6 +6104,10 @@ Would you like to unlock the full game now?</value>
 		<value>Difficulty</value>
 	</data>	
 
+	<data name="IDS_SLIDER_CONTROLTYPE">
+		<value>Control Type</value>
+	</data>
+
 	<data name="IDS_SLIDER_MUSIC">
 		<value>Music</value>
 	</data>	
@@ -6139,6 +6143,38 @@ Would you like to unlock the full game now?</value>
 	<data name="IDS_DIFFICULTY_TITLE_HARD">
 		<value>Hard</value>
 	</data>	
+
+	<data name="IDS_CONTROLTYPE_KBM">
+		<value>Keyboard &amp; Mouse</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_XBOXONE">
+		<value>Xbox One</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_XBOX360">
+		<value>Xbox 360</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_VITA">
+		<value>PlayStation Vita</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_PLAYSTATION3">
+		<value>PlayStation 3</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_PLAYSTATION4">
+		<value>PlayStation 4</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_WIIU">
+		<value>Wii U</value>
+	</data>
+
+	<data name="IDS_CONTROLTYPE_SWITCH">
+		<value>Nintendo Switch</value>
+	</data>
 
 	<data name="IDS_DIFFICULTY_PEACEFUL">
 		<value>In this mode, the player regains health over time, and there are no enemies in the environment.</value>

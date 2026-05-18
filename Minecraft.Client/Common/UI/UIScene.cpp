@@ -294,7 +294,16 @@ void UIScene::loadMovie()
 	moviePath.append(L"Vita.swf");
 	m_loadedResolution = eSceneResolution_Vita;
 #elif defined _WINDOWS64
-	if(ui.getScreenHeight() > 720.0f)
+	int primaryPad = ProfileManager.GetPrimaryPad();
+	if(primaryPad < 0 || primaryPad >= XUSER_MAX_COUNT)
+		primaryPad = 0;
+	const int controlType = app.GetGameSettings(primaryPad, eGameSetting_ControlType);
+	const bool force720ForControlType = (controlType == 3 || controlType == 4 || controlType == 6);
+	// tutorial popups + HUD elements have inaccuracies + crashes that we need to fix here
+	const bool isTutorialPopupMovie = (moviePath.find(L"TutorialPopup") == 0);
+	const bool isHUDMovie = (moviePath.find(L"HUD") == 0);
+	const bool use1080 = (ui.getScreenHeight() > 720.0f) && (!force720ForControlType || isTutorialPopupMovie || isHUDMovie);
+	if(use1080)
 	{
 		moviePath.append(L"1080.swf");
 		m_loadedResolution = eSceneResolution_1080;

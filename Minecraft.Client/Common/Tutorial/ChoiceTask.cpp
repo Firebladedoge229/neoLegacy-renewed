@@ -51,6 +51,7 @@ bool ChoiceTask::isCompleted()
 	if(ui.GetMenuDisplayed(tutorial->getPad()))
 	{
 		// If a menu is displayed, then we use the handleUIInput to complete the task
+		return false;
 	}
 	else
 	{
@@ -87,6 +88,8 @@ bool ChoiceTask::isCompleted()
 		}
 		return m_bConfirmMappingComplete || m_bCancelMappingComplete;
 	}
+
+	return false;
 }
 
 eTutorial_CompletionAction ChoiceTask::getCompletionAction()

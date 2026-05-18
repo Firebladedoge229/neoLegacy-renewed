@@ -3,10 +3,23 @@
 #include "UI.h"
 #include "UIScene_SettingsUIMenu.h"
 
+int UIScene_SettingsUIMenu::m_iControlTypeSettingA[8]=
+{
+	IDS_CONTROLTYPE_KBM,
+	IDS_CONTROLTYPE_XBOXONE,
+	IDS_CONTROLTYPE_XBOX360,
+	IDS_CONTROLTYPE_VITA,
+	IDS_CONTROLTYPE_PLAYSTATION3,
+	IDS_CONTROLTYPE_PLAYSTATION4,
+	IDS_CONTROLTYPE_WIIU,
+	IDS_CONTROLTYPE_SWITCH,
+};
+
 UIScene_SettingsUIMenu::UIScene_SettingsUIMenu(int iPad, void *initData, UILayer *parentLayer) : UIScene(iPad, parentLayer)
 {
 	// Setup all the Iggy references we need for this scene
 	initialiseMovie();
+	m_bControlTypeChanged = false;
 
 	m_bNotInGame=(Minecraft::GetInstance()->level==nullptr);
 
@@ -20,6 +33,7 @@ UIScene_SettingsUIMenu::UIScene_SettingsUIMenu(int iPad, void *initData, UILayer
 	m_checkboxShowSplitscreenGamertags.init(app.GetString(IDS_CHECKBOX_DISPLAY_SPLITSCREENGAMERTAGS),eControl_ShowSplitscreenGamertags,(app.GetGameSettings(m_iPad,eGameSetting_DisplaySplitscreenGamertags)!=0));
 	m_checkboxShowClassicCrafting.init(app.GetString(IDS_CHECKBOX_CLASSICCRAFTING), eControl_ShowClassicCrafting, (app.GetGameSettings(m_iPad, eGameSetting_ClassicCrafting) != 0));
 	// label is hardcoded for now (no IDS_* yet)
+
 	m_checkboxHideLoadCreateJoinSaveSizeBar.init(L"Hide world disk space bar", eControl_HideSaveSizeBar, (app.GetGameSettings(m_iPad, eGameSetting_HideSaveSizeBar) != 0));
 
 	WCHAR TempString[256];
@@ -32,8 +46,12 @@ UIScene_SettingsUIMenu::UIScene_SettingsUIMenu(int iPad, void *initData, UILayer
 
 	swprintf( (WCHAR *)TempString, 256, L"%ls: %d", app.GetString( IDS_SLIDER_UISIZE ),app.GetGameSettings(m_iPad,eGameSetting_UISize)+1);	
 	m_sliderUISize.init(TempString,eControl_UISize,1,3,app.GetGameSettings(m_iPad,eGameSetting_UISize)+1);
+
 	swprintf( (WCHAR *)TempString, 256, L"%ls: %d", app.GetString( IDS_SLIDER_UISIZESPLITSCREEN ),app.GetGameSettings(m_iPad,eGameSetting_UISizeSplitscreen)+1);	
 	m_sliderUISizeSplitscreen.init(TempString,eControl_UISizeSplitscreen,1,3,app.GetGameSettings(m_iPad,eGameSetting_UISizeSplitscreen)+1);
+
+	swprintf( (WCHAR *)TempString, 256, L"%ls: %ls", app.GetString( IDS_SLIDER_CONTROLTYPE ),app.GetString(m_iControlTypeSettingA[app.GetGameSettings(m_iPad,eGameSetting_ControlType)]));	
+	m_sliderControlType.init(TempString,eControl_ControlType,0,7,app.GetGameSettings(m_iPad,eGameSetting_ControlType));
 
 	doHorizontalResizeCheck();
 
@@ -55,6 +73,7 @@ UIScene_SettingsUIMenu::UIScene_SettingsUIMenu(int iPad, void *initData, UILayer
 			// hide things we don't want the splitscreen player changing
 			removeControl(&m_checkboxShowSplitscreenGamertags, true);
 		}
+		removeControl(&m_sliderControlType, true);
 	}
 
 	if(bRemoveInGameGamertags)
@@ -118,6 +137,8 @@ void UIScene_SettingsUIMenu::handleInput(int iPad, int key, bool repeat, bool pr
 	case ACTION_MENU_CANCEL:
 		if(pressed)
 		{
+			const bool reloadControlTypeSkin = m_bControlTypeChanged;
+
 			// check the checkboxes
 			app.SetGameSettings(m_iPad,eGameSetting_DisplayHUD,m_checkboxDisplayHUD.IsChecked()?1:0);
 			app.SetGameSettings(m_iPad,eGameSetting_DisplayHand,m_checkboxDisplayHand.IsChecked()?1:0);
@@ -129,6 +150,10 @@ void UIScene_SettingsUIMenu::handleInput(int iPad, int key, bool repeat, bool pr
 			app.SetGameSettings(m_iPad, eGameSetting_HideSaveSizeBar, m_checkboxHideLoadCreateJoinSaveSizeBar.IsChecked() ? 1 : 0);
 
 			navigateBack();
+			if(reloadControlTypeSkin)
+			{
+				ui.ReloadSkin();
+			}
 		}
 		break;
 	case ACTION_MENU_OK:
@@ -197,6 +222,15 @@ void UIScene_SettingsUIMenu::handleSliderMove(F64 sliderId, F64 currentValue)
 			ui.UpdateSelectedItemPos(m_iPad);
 		}
 
+		break;
+	case eControl_ControlType:
+		m_sliderControlType.handleSliderMove(value);
+		app.SetGameSettings(m_iPad,eGameSetting_ControlType,value);
+		m_bControlTypeChanged = true;
+
+		swprintf( (WCHAR *)TempString, 256, L"%ls: %ls", app.GetString( IDS_SLIDER_CONTROLTYPE ),app.GetString(m_iControlTypeSettingA[value]));
+		m_sliderControlType.setLabel(TempString);
+		
 		break;
 	}
 }
